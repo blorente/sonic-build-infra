@@ -66,3 +66,25 @@ config_setting(
     },
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "empty_sai",
+    srcs = [],
+)
+
+# Flag that represents which implementation of SAI we should link against.
+# Empty by default, to force intentionally linking against one specific SAI.
+# Individual rules may or may not respect this flag.
+# For instance, targets in `sonic-buildimage/plaform` may ignore it in favour of
+# hardcoding a particular vendor's SAI implementation.
+label_flag(
+    name = "sai",
+    build_setting_default = ":empty_sai",
+)
+
+config_setting(
+    name = "sai_empty",
+    flag_values = {
+        ":sai": ":empty_sai",
+    },
+)

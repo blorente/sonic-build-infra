@@ -48,3 +48,15 @@ alias(
     actual = "//config:debug_enabled",
     visibility = ["//visibility:public"],
 )
+
+alias(
+    name = "sai",
+    actual = "//config:sai",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "sai_empty",
+    actual = "//config:sai_empty",
+    visibility = ["//visibility:public"],
+)
