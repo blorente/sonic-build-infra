@@ -180,7 +180,7 @@
     "@@rules_distroless+//apt:extensions.bzl%apt": {
       "general": {
         "bzlTransitiveDigest": "c9bF647fGaf7+f77BtPvM3sRD9KziirQKgYXFZx2NPI=",
-        "usagesDigest": "W9cx0jRT721ooiBQeHnd6Zf+FPxYAixg6O5b2V/NwBI=",
+        "usagesDigest": "/KCoG9FOrT7X0Dnlnj0LrPXs5IDrOMOF3lCQ/2B67kc=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
