@@ -18,9 +18,10 @@ git_override(
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "bazel_lib", version = "3.1.1")
 bazel_dep(name = "rules_distroless", version = "0.0.0")
-local_path_override(
+git_override(
     module_name = "rules_distroless",
-    path = "../../bazel-contrib/rules_distroless",
+    commit = "ebfd74a2e07b83235e064bb63ace98a1a5223e02",
+    remote = "https://github.com/bazel-contrib/rules_distroless",
 )
 
 fetch_gcc = use_repo_rule("//toolchains/gcc:gcc.bzl", "fetch_gcc")
