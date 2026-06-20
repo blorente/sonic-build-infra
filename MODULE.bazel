@@ -9,8 +9,7 @@ bazel_dep(name = "swig", version = "4.1.0")
 bazel_dep(name = "rules_cc", version = "0.2.14")
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "platforms", version = "1.0.0")
-# TODO(bazel-ready): Upgrade tar.bzl when the version with this commit releases.
-bazel_dep(name = "tar.bzl", version = "0.8.1.commit-9b76e660363ab2465d89d3aadbbc1f7afa02e65c")
+bazel_dep(name = "tar.bzl", version = "0.10.5")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "bazel_lib", version = "3.1.1")
 # TODO(bazel-ready): Upgrade rules_distroless when #183 merges
