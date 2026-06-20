@@ -9,21 +9,12 @@ bazel_dep(name = "swig", version = "4.1.0")
 bazel_dep(name = "rules_cc", version = "0.2.14")
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "tar.bzl", version = "0.8.1")
 # TODO(bazel-ready): Upgrade tar.bzl when the version with this commit releases.
-git_override(
-    module_name = "tar.bzl",
-    commit = "9b76e660363ab2465d89d3aadbbc1f7afa02e65c",
-    remote = "https://github.com/bazel-contrib/tar.bzl",
-)
+bazel_dep(name = "tar.bzl", version = "0.8.1.commit-9b76e660363ab2465d89d3aadbbc1f7afa02e65c")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "bazel_lib", version = "3.1.1")
-bazel_dep(name = "rules_distroless", version = "0.0.0")
-git_override(
-    module_name = "rules_distroless",
-    commit = "ebfd74a2e07b83235e064bb63ace98a1a5223e02",
-    remote = "https://github.com/bazel-contrib/rules_distroless",
-)
+# TODO(bazel-ready): Upgrade rules_distroless when #183 merges
+bazel_dep(name = "rules_distroless", version = "0.0.0.commit-ebfd74a2e07b83235e064bb63ace98a1a5223e02")
 
 fetch_gcc = use_repo_rule("//toolchains/gcc:gcc.bzl", "fetch_gcc")
 
