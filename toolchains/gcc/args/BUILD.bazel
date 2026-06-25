@@ -17,7 +17,7 @@ load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 
 HEADERS = {
-    "gcc-builtin": "@gcc-linux-x86_64//:builtin_headers",
+    "gcc-builtin": "@gcc-linux-target-x86_64-host-x86_64//:builtin_headers",
     "libstdc": "@bookworm_libstdc---12-dev-amd64_12.2.0-14-deb12u1//:directory",
     "libc6": "@bookworm_libc6-dev-amd64_2.36-9-deb12u13//:directory",
     "linux-libc": "@bookworm-security_linux-libc-dev-amd64_6.1.153-1//:directory",
@@ -25,7 +25,7 @@ HEADERS = {
 }
 
 C_HEADERS = {
-    "gcc-builtin": "@gcc-linux-x86_64//:builtin_headers",
+    "gcc-builtin": "@gcc-linux-target-x86_64-host-x86_64//:builtin_headers",
     "libc6": "@bookworm_libc6-dev-amd64_2.36-9-deb12u13//:directory",
     "linux-libc": "@bookworm-security_linux-libc-dev-amd64_6.1.153-1//:directory",
     "libgcc": "@bookworm_libgcc-12-dev-amd64_12.2.0-14-deb12u1//:directory",

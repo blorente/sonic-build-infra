@@ -37,7 +37,8 @@ cc_tool(
     src = select({
         # Using `bin/x86_64-linux-gcc` results in errors to do with not declaring the toolchain includes.
         # https://github.com/bazelbuild/rules_cc/issues/277
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-gcc",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:bin/x86_64-linux-gcc",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/aarch64-linux-gcc",
     }),
     data = [
         # ":exec_platform_builtin_headers",
@@ -49,7 +50,8 @@ cc_tool(
 cc_tool(
     name = "g++",
     src = select({
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-g++",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:bin/x86_64-linux-g++",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/aarch64-linux-g++",
     }),
     data = [
         # ":exec_platform_builtin_headers",
@@ -61,7 +63,8 @@ cc_tool(
 cc_tool(
     name = "ld",
     src = select({
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-g++",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:bin/x86_64-linux-g++",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/aarch64-linux-g++",
     }),
     data = [
         ":exec_platform_linker_builtins",
@@ -73,7 +76,8 @@ cc_tool(
 cc_tool(
     name = "ar",
     src = select({
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-gcc-ar",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:bin/x86_64-linux-gcc-ar",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/aarch64-linux-gcc-ar",
     }),
     tags = ["manual"],
 )
@@ -81,7 +85,8 @@ cc_tool(
 cc_tool(
     name = "objcopy",
     src = select({
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/objcopy",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:bin/objcopy",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/objcopy",
     }),
     tags = ["manual"],
 )
@@ -89,7 +94,8 @@ cc_tool(
 cc_tool(
     name = "objdump",
     src = select({
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/objdump",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:bin/objdump",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/objdump",
     }),
     tags = ["manual"],
 )
@@ -97,7 +103,8 @@ cc_tool(
 cc_tool(
     name = "gcov",
     src = select({
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/gcov",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:bin/gcov",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/gcov",
     }),
     tags = ["manual"],
 )
@@ -105,7 +112,8 @@ cc_tool(
 cc_tool(
     name = "strip",
     src = select({
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/strip",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:bin/strip",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/strip",
     }),
     tags = ["manual"],
 )
@@ -121,7 +129,8 @@ cc_tool(
 alias(
     name = "exec_platform_builtin_headers",
     actual = select({
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:builtin_headers",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:builtin_headers",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:builtin_headers",
     }),
     tags = ["manual"],
     visibility = ["//visibility:private"],
@@ -130,7 +139,8 @@ alias(
 alias(
     name = "exec_platform_multicall_support_files",
     actual = select({
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:multicall_support_files",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:multicall_support_files",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:multicall_support_files",
     }),
     tags = ["manual"],
     visibility = ["//visibility:private"],
@@ -139,7 +149,8 @@ alias(
 alias(
     name = "exec_platform_linker_builtins",
     actual = select({
-        "//toolchains/constraint:linux_x86_64": "@gcc-linux-x86_64//:linker_builtins",
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:linker_builtins",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:linker_builtins",
     }),
     tags = ["manual"],
     visibility = ["//visibility:private"],
