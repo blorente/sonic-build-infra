@@ -18,18 +18,25 @@ bazel_dep(name = "rules_distroless", version = "0.0.0.commit-ebfd74a2e07b83235e0
 fetch_gcc = use_repo_rule("//toolchains/gcc:gcc.bzl", "fetch_gcc")
 
 fetch_gcc(
-    name = "gcc-linux-x86_64",
+    name = "gcc-linux-target-x86_64-host-x86_64",
     integrity = "sha256-UQduF1g5tDS7LcAAbACWkW31hejERmbTWw486CHVNds=",
+    target_arch = "x86_64",
     urls = ["https://github.com/f0rmiga/gcc-builds/releases/download/18082025/gcc-toolchain-12.5.0-x86_64.tar.xz"],
 )
 
-# fetch_gcc(
-#     name = "gcc-linux-x86_64",
-#     integrity = "sha256-CzZeXaRR9cetxZT5Z4hdcYH/bRh9YImkvPNvlUvzzPk=",
-#     urls = ["https://github.com/f0rmiga/gcc-builds/releases/download/18082025/gcc-toolchain-14.3.0-x86_64.tar.xz"],
-# )
+# TODO BL: Replace the placeholder integrity and local file:// URL with the
+# published release artifact once it exists.
+fetch_gcc(
+    name = "gcc-linux-target-aarch64-host-aarch64",
+    integrity = "sha256-PLACEHOLDER-REPLACE-WITH-REAL-AARCH64-BUNDLE-HASH=",
+    target_arch = "aarch64",
+    urls = ["file:///home/blorente/code/github.com/f0rmiga/gcc-builds/gcc-toolchain-12.5.0-aarch64-host-aarch64.tar.xz"],
+)
 
-register_toolchains("//toolchains/gcc:host_gcc_toolchain")
+register_toolchains(
+    "//toolchains/gcc:host_x86_64_gcc_toolchain",
+    "//toolchains/gcc:host_aarch64_gcc_toolchain",
+)
 
 apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
 apt.sources_list(
