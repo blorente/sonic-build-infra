@@ -1,14 +1,7 @@
 #!/bin/bash
 #
 # Splits one ELF into a stripped binary plus a build-id-named .debug file,
-# mirroring Debian's dh_strip. Invoked by the strip_binary rule.
-#
-# Args (all positional):
-#   1  input ELF (read-only)
-#   2  stripped binary output path
-#   3  debug output directory (a TreeArtifact); the .debug file is written inside
-#   4  objcopy from the toolchain
-#   5  readelf from the toolchain
+# mirroring Debian's dh_strip.
 set -euo pipefail
 
 input="$1"

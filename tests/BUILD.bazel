@@ -1,6 +1,10 @@
-load("//tar:assert_tar.bzl", "assert_tar")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@tar.bzl", "mutate", "tar")
+load("//binary:assert_stripped.bzl", "assert_stripped")
+load("//binary:strip_binary.bzl", "strip_binary")
+load("//tar:assert_tar.bzl", "assert_tar")
+load(":keep_debug_info.bzl", "keep_debug_info")
 
 write_file(
     name = "small_file",
@@ -14,20 +18,19 @@ write_file(
     content = ["a much longer string with more content"],
 )
 
-
 tar(
     name = "simple_tar_mutate",
     srcs = ["//tests/testdata:file.txt"],
     mutate = mutate(
-        strip_prefix = package_name() + "/testdata",
         package_dir = "./usr/lib",
+        strip_prefix = package_name() + "/testdata",
     ),
 )
 
 assert_tar(
     name = "simple_tar_mutate_assert",
-    tar = ":simple_tar_mutate",
     expected = ":simple_tar.expected.txt",
+    tar = ":simple_tar_mutate",
 )
 
 tar(
@@ -43,8 +46,8 @@ tar(
 
 assert_tar(
     name = "simple_tar_mtree_assert",
-    tar = ":simple_tar_mtree",
     expected = ":simple_tar.expected.txt",
+    tar = ":simple_tar_mtree",
 )
 
 tar(
@@ -82,8 +85,95 @@ tar(
 
 assert_tar(
     name = "inconsistent_sizes_assert",
-    tar = ":inconsistent_sizes_tar_small",
     expected = ":inconsistent_sizes.expected.txt",
     inconsistent_sizes = ["./usr/lib/variable.txt"],
+    tar = ":inconsistent_sizes_tar_small",
 )
 
+#########################
+#   strip_binary tests  #
+#########################
+
+# Test that a C executable strips correctly.
+cc_binary(
+    name = "hello",
+    srcs = ["//tests/testdata:hello.c"],
+)
+
+build_test(
+    name = "hello_build_test",
+    targets = [":hello"],
+)
+
+keep_debug_info(
+    name = "hello_debug",
+    src = ":hello",
+)
+
+strip_binary(
+    name = "hello_strip",
+    src = ":hello_debug",
+)
+
+assert_stripped(
+    name = "hello_strip_test",
+    strip_target = ":hello_strip",
+)
+
+# Same flow, but for a shared library (.so) via cc_binary(linkshared = True).
+cc_binary(
+    name = "libgreet.so",
+    srcs = ["//tests/testdata:greet.c"],
+    linkshared = True,
+)
+
+build_test(
+    name = "libgreet_build_test",
+    targets = [":libgreet.so"],
+)
+
+keep_debug_info(
+    name = "libgreet_debug",
+    src = ":libgreet.so",
+)
+
+strip_binary(
+    name = "libgreet_strip",
+    src = ":libgreet_debug",
+)
+
+assert_stripped(
+    name = "libgreet_strip_test",
+    strip_target = ":libgreet_strip",
+)
+
+# Same flow again, but for a shared library built via cc_shared_library.
+cc_library(
+    name = "greet_lib",
+    srcs = ["//tests/testdata:greet.c"],
+)
+
+cc_shared_library(
+    name = "greet_shared",
+    deps = [":greet_lib"],
+)
+
+build_test(
+    name = "greet_shared_build_test",
+    targets = [":greet_shared"],
+)
+
+keep_debug_info(
+    name = "greet_shared_debug",
+    src = ":greet_shared",
+)
+
+strip_binary(
+    name = "greet_shared_strip",
+    src = ":greet_shared_debug",
+)
+
+assert_stripped(
+    name = "greet_shared_strip_test",
+    strip_target = ":greet_shared_strip",
+)
