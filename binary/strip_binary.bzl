@@ -9,8 +9,11 @@ def _strip_binary_impl(ctx):
     stripped = ctx.actions.declare_file(ctx.attr.name + ".stripped")
 
     # The debug output is a TreeArtifact: its single entry is named by the
-    # binary's build-id, which is only knowable at action time. The tar.bzl
-    # wrapper reads that entry name to place the file at its build-id path.
+    # binary's build-id, which is only knowable at action time.
+    #
+    # TODO(bazel-ready): In Bazel 9, we may be able to use `map_directory` to surface
+    # the debug info as a file output.
+    #   Ref: https://bazel.build/rules/lib/builtins/actions#map_directory
     debug = ctx.actions.declare_directory(ctx.attr.name + ".debug")
 
     args = ctx.actions.args()
