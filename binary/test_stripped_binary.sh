@@ -35,7 +35,6 @@ assert_stripped_binary_has_gnu_debug_link() {
   fi
 }
 
-
 assert_debug_dir_has_only_one_file() {
   local count
   count="$(find_debug_file | wc -l)"
@@ -64,10 +63,17 @@ assert_debug_file_name_is_build_id() {
   fi
 }
 
-assert_stripped_bin_has_no_debug_sections
-assert_stripped_binary_has_gnu_debug_link
-assert_debug_dir_has_only_one_file
-assert_debug_file_has_debug_sections
-assert_debug_file_name_is_build_id
+run_test() {
+  test_cmd="${1}"
+  echo "Testing ${test_cmd} ..."
+  "${test_cmd}"
+  echo "  OK"
+}
+
+run_test assert_stripped_bin_has_no_debug_sections
+run_test assert_stripped_binary_has_gnu_debug_link
+run_test assert_debug_dir_has_only_one_file
+run_test assert_debug_file_has_debug_sections
+run_test assert_debug_file_name_is_build_id
 
 echo OK
