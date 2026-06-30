@@ -86,3 +86,4 @@ assert_tar(
     expected = ":inconsistent_sizes.expected.txt",
     inconsistent_sizes = ["./usr/lib/variable.txt"],
 )
+
