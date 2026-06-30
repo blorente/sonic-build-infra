@@ -1,0 +1,6 @@
+# The strip_binary assertion test runs this script as its test logic; it is
+# referenced from other packages, so it must be exported.
+exports_files([
+    "test_stripped_binary.sh",
+    "strip_binary.sh",
+])

@@ -89,6 +89,7 @@ cc_tool(
         "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/objcopy",
     }),
     tags = ["manual"],
+    visibility = ["//visibility:public"],
 )
 
 cc_tool(
@@ -98,6 +99,20 @@ cc_tool(
         "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/objdump",
     }),
     tags = ["manual"],
+    visibility = ["//visibility:public"],
+)
+
+# readelf has no standard cc action, so it is not part of `all_tools`; it is
+# exposed as a public tool so rules (e.g. //binary:assert_stripped) can read the
+# build-id out of an ELF using the same binutils that produced it.
+cc_tool(
+    name = "readelf",
+    src = select({
+        "//toolchains/constraint:linux_x86_64": "@gcc-linux-target-x86_64-host-x86_64//:bin/readelf",
+        "//toolchains/constraint:linux_aarch64": "@gcc-linux-target-aarch64-host-aarch64//:bin/readelf",
+    }),
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
 )
 
 cc_tool(

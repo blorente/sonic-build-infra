@@ -1,1 +1,33 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("//binary:assert_stripped.bzl", "assert_stripped")
+load("//binary:strip_binary.bzl", "strip_binary")
+load(":keep_debug_info.bzl", "keep_debug_info")
+
 exports_files(["file.txt"])
+
+cc_binary(
+    name = "hello",
+    srcs = ["hello.c"],
+)
+
+build_test(
+    name = "hello_build_test",
+    targets = [":hello"],
+)
+
+# Test fixture: give strip_binary an input that actually carries debug info,
+# regardless of the build's --strip / -c mode. Production callers supply their own.
+keep_debug_info(
+    name = "hello_debug",
+    src = ":hello",
+)
+
+strip_binary(
+    name = "hello_strip",
+    src = ":hello_debug",
+)
+
+assert_stripped(
+    name = "hello_strip_test",
+    strip_target = ":hello_strip",
+)
