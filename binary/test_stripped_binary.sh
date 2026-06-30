@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-#
-# Inputs arrive via the environment (set by the assert_stripped test rule):
-#   OBJDUMP            objdump from the toolchain
-#   READELF            readelf from the toolchain
-#   BINARY_UNDER_TEST  the stripped binary
-#   DEBUG_DIR          the build-id-named .debug TreeArtifact directory
 set -euo pipefail
 
 objdump="${OBJDUMP:?"OBJDUMP must be set"}"
