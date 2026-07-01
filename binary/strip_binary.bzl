@@ -62,19 +62,20 @@ strip_binary = rule(
             cfg = "exec",
             doc = "The script that drives objcopy to split the ELF.",
         ),
+        # These are not read from the toolchain, but rather _from the same place as the toolchain_.
+        # This is because readelf is not exposed by CcToolchainInfo,
+        # so we might as well use the same pattern for objcopy as well.
         "_objcopy": attr.label(
             default = "//toolchains/gcc/tools:objcopy",
             executable = True,
             cfg = "exec",
-            doc = "objcopy from the toolchain, used to extract/strip debug info.",
+            doc = "objcopy binary. We could get it from the toolchain, but we can't get readelf from the toolchain, so might as well use the same pattern.",
         ),
         "_readelf": attr.label(
             default = "//toolchains/gcc/tools:readelf",
             executable = True,
             cfg = "exec",
-            doc = "readelf from the toolchain, used to read the binary's build-id.",
+            doc = "readelf binary. We can't read it from the toolchain, so we depend on it directly.",
         ),
     },
 )
-
-# TODO BL: Figure out how to get objcopy and readelf from the cc toolchain.
