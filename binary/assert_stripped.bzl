@@ -56,17 +56,16 @@ _assert_stripped_test = rule(
             default = "//toolchains/gcc/tools:objdump",
             executable = True,
             cfg = "exec",
-            doc = "objdump from the toolchain, used to inspect ELF sections.",
+            doc = "objdump binary. We can't read it from the toolchain, so we depend on it directly.",
         ),
         "_readelf": attr.label(
             default = "//toolchains/gcc/tools:readelf",
             executable = True,
             cfg = "exec",
-            doc = "readelf from the toolchain, used to read the binary's build-id.",
+            doc = "readelf binary. We can't read it from the toolchain, so we depend on it directly.",
         ),
     },
 )
-# TODO BL: Figure out how to get objdump and readelf from the cc toolchain.
 
 def assert_stripped(name, strip_target, **kwargs):
     """Assert that `strip_target` (a strip_binary) stripped its input correctly.
