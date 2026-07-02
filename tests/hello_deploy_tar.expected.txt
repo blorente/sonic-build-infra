@@ -1,0 +1,6 @@
+drwxr-xr-x  0 1000   1000        0 Jan  1  2000 ./
+drwxr-xr-x  0 0      0           0 Jan  1  2000 ./usr/
+drwxr-xr-x  0 0      0           0 Jan  1  2000 ./usr/bin/
+-rwxr-xr-x  0 0      0           0 Jan  1  2023 ./usr/bin/hello
+drwxr-xr-x  0 0      0           0 Jan  1  2000 ./usr/share/
+-rwxr-xr-x  0 0      0          13 Jan  1  2023 ./usr/share/file.txt
