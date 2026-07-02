@@ -1,10 +1,16 @@
+load("@bazel_lib//lib:diff_test.bzl", "diff_test")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@tar.bzl", "mutate", "tar")
 load("//binary:assert_stripped.bzl", "assert_stripped")
 load("//binary:strip_binary.bzl", "strip_binary")
 load("//tar:assert_tar.bzl", "assert_tar")
+load("//tar:sonic_deploy_tar.bzl", "sonic_deploy_tar")
 load(":keep_debug_info.bzl", "keep_debug_info")
+
+#############################
+#   assert_tar & tar tests  #
+#############################
 
 write_file(
     name = "small_file",
@@ -177,3 +183,70 @@ assert_stripped(
     name = "greet_shared_strip_test",
     strip_target = ":greet_shared_strip",
 )
+
+#############################
+#   sonic_deploy_tar tests  #
+#############################
+
+cc_binary(
+    name = "hello_autostripped_raw",
+    srcs = ["//tests/testdata:hello.c"],
+)
+
+keep_debug_info(
+    name = "hello_autostripped",
+    src = ":hello_autostripped_raw",
+)
+
+sonic_deploy_tar(
+    name = "hello_deploy_tar",
+    srcs = ["//tests/testdata:file.txt"],
+    mtree = [
+        ". time=946699200 mode=0755 type=dir",
+        "./usr uid=0 gid=0 time=946699200 mode=0755 type=dir",
+        "./usr/bin uid=0 gid=0 time=946699200 mode=0755 type=dir",
+        "./usr/share uid=0 gid=0 time=946699200 mode=0755 type=dir",
+        "./usr/share/file.txt uid=0 gid=0 time=1672560000 mode=0755 type=file content=$(location //tests/testdata:file.txt)",
+    ],
+    binaries = {
+        "./usr/bin/hello uid=0 gid=0 time=1672560000 mode=0755 type=file": ":hello_autostripped",
+    },
+)
+
+# Assert the tar has roughly the shape we expect
+assert_tar(
+    name = "hello_deploy_tar_assert",
+    expected = ":hello_deploy_tar.expected.txt",
+    inconsistent_sizes = ["./usr/bin/hello"],
+    tar = ":hello_deploy_tar",
+)
+
+# Assert the packaged binary is the stripped version.
+strip_binary(
+    name = "hello_deploy_expected_strip",
+    src = ":hello_autostripped",
+)
+
+filegroup(
+    name = "hello_deploy_expected_stripped",
+    srcs = [":hello_deploy_expected_strip"],
+    output_group = "stripped",
+    testonly = True,
+)
+
+genrule(
+    name = "hello_deploy_extracted_hello",
+    srcs = [":hello_deploy_tar"],
+    outs = ["hello_deploy_extracted_hello.bin"],
+    testonly = True,
+    cmd = "$(BSDTAR_BIN) -x -O -f $(execpath :hello_deploy_tar) ./usr/bin/hello > $@",
+    toolchains = ["@tar.bzl//tar/toolchain:type"],
+)
+
+diff_test(
+    name = "hello_deploy_tar_content_test",
+    file1 = ":hello_deploy_extracted_hello.bin",
+    file2 = ":hello_deploy_expected_stripped",
+    timeout = "short",
+)
+
