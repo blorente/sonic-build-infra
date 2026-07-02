@@ -214,3 +214,14 @@ cc_sysroot(
     sysroot = "@@rules_distroless++apt+bookworm_libc6-dev-amd64_2.36-9-deb12u13//:directory",
     visibility = ["//visibility:public"],
 )
+
+cc_args(
+    name = "add_build_ids",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = [
+        "-Wl,--build-id",
+    ],
+    visibility = ["//visibility:public"],
+)
