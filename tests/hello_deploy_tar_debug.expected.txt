@@ -1,0 +1,7 @@
+drwxr-xr-x  0 1000   1000        0 Jan  1  2000 ./
+drwxr-xr-x  0 0      0           0 Jan  1  2000 ./usr/
+drwxr-xr-x  0 0      0           0 Jan  1  2000 ./usr/lib/
+drwxr-xr-x  0 0      0           0 Jan  1  2000 ./usr/lib/debug/
+drwxr-xr-x  0 0      0           0 Jan  1  2023 ./usr/lib/debug/.build-id/
+drwxr-xr-x  0 0      0           0 Jan  1  2023 ./usr/lib/debug/.build-id/c2/
+-rwxr-xr-x  0 0      0        9048 Jan  1  2023 ./usr/lib/debug/.build-id/c2/6c98ee08452f58a0b5cb1b442e00b71ac9e82b.debug

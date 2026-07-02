@@ -12,6 +12,15 @@ bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "tar.bzl", version = "0.10.5")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "bazel_lib", version = "3.1.1")
+
+# A local module providing a cc_binary in a separate module, used only by our
+# tests to prove that we correctly package binaries from another module.
+bazel_dep(name = "deploy_tar_external_binary", version = "0.0.0", dev_dependency = True)
+local_path_override(
+    module_name = "deploy_tar_external_binary",
+    path = "tests/external_binary_module",
+)
+
 # TODO(bazel-ready): Upgrade rules_distroless when #183 merges
 bazel_dep(name = "rules_distroless", version = "0.0.0.commit-ebfd74a2e07b83235e064bb63ace98a1a5223e02")
 
