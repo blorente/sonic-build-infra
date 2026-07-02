@@ -24,8 +24,11 @@ if [[ -z "$build_id" ]]; then
   exit 1
 fi
 
-mkdir -p "$debug_dir"
-debug_file="${debug_dir}/${build_id}.debug"
+# Debian's build-id layout: .build-id/NN/REST.debug, where
+#  - NN = first two hex chars,
+#  - REST = the remainder.
+debug_file="${debug_dir}/.build-id/${build_id:0:2}/${build_id:2}.debug"
+mkdir -p "$(dirname "$debug_file")"
 
 # Extract the debug info into the build-id-named file.
 "$objcopy" --only-keep-debug "$tmp" "$debug_file"

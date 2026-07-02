@@ -250,3 +250,32 @@ diff_test(
     timeout = "short",
 )
 
+# The debug tar lays the .debug out under /usr/lib/debug/.build-id/NN/REST.debug.
+assert_tar(
+    name = "hello_deploy_tar_debug_assert",
+    expected = ":hello_deploy_tar_debug.expected.txt",
+    tar = ":hello_deploy_tar.debug_symbols",
+)
+
+# Prove sonic_deploy_tar works with a binary from a *different bazel module*:
+# strip it, build the stripped payload tar and the .build-id debug tar.
+sonic_deploy_tar(
+    name = "external_deploy_tar",
+    binaries = {
+        "./usr/bin/external_hello uid=0 gid=0 time=1672560000 mode=0755 type=file": "@deploy_tar_external_binary//:external_hello",
+    },
+    mtree = [
+        ". time=946699200 mode=0755 type=dir",
+        "./usr uid=0 gid=0 time=946699200 mode=0755 type=dir",
+        "./usr/bin uid=0 gid=0 time=946699200 mode=0755 type=dir",
+    ],
+)
+
+build_test(
+    name = "external_deploy_tar_build_test",
+    targets = [
+        ":external_deploy_tar",
+        ":external_deploy_tar.debug_symbols",
+    ],
+)
+

@@ -1,0 +1,11 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+# Please note that we can't use any of the sonic-build-infra facilities,
+# such as the gcc toolchain, because that would introduce a dependency cycle.
+cc_binary(
+    name = "external_hello",
+    srcs = ["external_hello.c"],
+    copts = ["-g"],
+    linkopts = ["-Wl,--build-id"],
+    visibility = ["//visibility:public"],
+)

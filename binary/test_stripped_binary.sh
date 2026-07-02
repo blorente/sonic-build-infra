@@ -9,7 +9,8 @@ debug_dir="${DEBUG_DIR:?"DEBUG_DIR must be set"}"
 fail() { echo "ASSERT FAILED: $*" >&2; exit 1; }
 
 find_debug_file() {
-  find -L "$debug_dir" -maxdepth 1 -type f
+  # The debug file lives at .build-id/NN/REST.debug
+  find -L "$debug_dir" -type f -name '*.debug'
 }
 
 assert_stripped_bin_has_no_debug_sections() {
@@ -45,15 +46,21 @@ assert_debug_file_has_debug_sections() {
   fi
 }
 
-assert_debug_file_name_is_build_id() {
-  local debug_file="$(find_debug_file)"
-  local linkname="$(basename "$debug_file")"
-  local build_id="$("$readelf" -n "$binary_under_test" 2>/dev/null | awk '/Build ID:/ { print $NF }')"
+assert_debug_file_at_build_id_path() {
+  # dh_strip puts the debug file at .build-id/NN/REST.debug
+  local debug_file
+  local build_id
+  local debug_file_relative
+  local expected
+  debug_file="$(find_debug_file)"
+  build_id="$("$readelf" -n "$binary_under_test" 2>/dev/null | awk '/Build ID:/ { print $NF }')"
   if [[ -z "$build_id" ]]; then
     fail "could not read build-id from stripped binary"
   fi
-  if [[ "$linkname" != "$build_id.debug" ]]; then
-    fail "debug file named '$linkname', expected '$build_id.debug'"
+  debug_file_relative="${debug_file#"$debug_dir"/}"
+  expected=".build-id/${build_id:0:2}/${build_id:2}.debug"
+  if [[ "$debug_file_relative" != "$expected" ]]; then
+    fail "debug file at '$debug_file_relative', expected '$expected'"
   fi
 }
 
@@ -68,6 +75,6 @@ run_test assert_stripped_bin_has_no_debug_sections
 run_test assert_stripped_binary_has_gnu_debug_link
 run_test assert_debug_dir_has_only_one_file
 run_test assert_debug_file_has_debug_sections
-run_test assert_debug_file_name_is_build_id
+run_test assert_debug_file_at_build_id_path
 
 echo OK
