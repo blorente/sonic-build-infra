@@ -1,6 +1,6 @@
-load("@rules_python//python:defs.bzl", "PyInfo")
-load("@tar.bzl", _mutate = "mutate", "tar")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@rules_python//python:defs.bzl", "PyInfo")
+load("@tar.bzl", "tar", _mutate = "mutate")
 
 def _export_pyinfo(ctx):
     files = []
@@ -67,7 +67,7 @@ def site_packages(name, srcs, mutate = None, **kwargs):
     sub(/^/, "./usr/lib/python3/dist-packages/")
   }
 }
-""".split("\n") 
+""".split("\n"),
     )
     tar(
         name = name,
