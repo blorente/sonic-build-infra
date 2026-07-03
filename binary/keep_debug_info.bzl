@@ -1,6 +1,6 @@
-"""Build a binary, but make sure we're producing debug info
+"""Build a binary, but make sure we're producing debug info.
 
-By setting `--strip` to `never` and manually adding the flags needed to produce the info.
+This sets `--strip` to `never` and manually adding the compiler and linker flags needed to produce the info.
 """
 
 def _keep_debug_info_transition_impl(settings, attr):

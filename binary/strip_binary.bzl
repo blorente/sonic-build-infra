@@ -4,7 +4,9 @@ Behaviour mirrors Debian's dh_strip:
 It is language-agnostic and operates on the ELF directly via binutils objcopy.
 """
 
-def _strip_binary_impl(ctx):
+load(":keep_debug_info.bzl", "keep_debug_info")
+
+def _strip_binary_rule_impl(ctx):
     src = ctx.file.src
     stripped = ctx.actions.declare_file(ctx.attr.name + ".stripped")
 
@@ -44,8 +46,8 @@ def _strip_binary_impl(ctx):
         ),
     ]
 
-strip_binary = rule(
-    implementation = _strip_binary_impl,
+_strip_binary_rule = rule(
+    implementation = _strip_binary_rule_impl,
     doc = "Takes a single compiled ELF target and produces (a) a stripped version with debug " +
           "info removed, and (b) the extracted debug symbols as a <build-id>.debug file. ",
     attrs = {
@@ -78,4 +80,31 @@ strip_binary = rule(
             doc = "readelf binary. We can't read it from the toolchain, so we depend on it directly.",
         ),
     },
+)
+
+def _strip_binary_impl(name, src, force_debug_build, **kwargs):
+  binary = src
+  if force_debug_build:
+    keep_debug_info_bin = "{}.debuggable".format(name)
+    keep_debug_info(name = keep_debug_info_bin, src = src)
+    binary = ":{}".format(keep_debug_info_bin)
+
+  _strip_binary_rule(
+    name = name,
+    src = binary,
+    **kwargs,
+ )
+
+
+strip_binary = macro(
+    doc = "Takes a single compiled ELF target and produces (a) a stripped version with debug " +
+          "info removed, and (b) the extracted debug symbols as a <build-id>.debug file. ",
+  implementation = _strip_binary_impl,
+  inherit_attrs = _strip_binary_rule,
+  attrs = {
+    "force_debug_build": attr.bool(
+      doc = "Whether the binary should be rebuilt with debug information before stripping. This will override Bazel's regular CLI compilation instructions, like `--strip=never`",
+      default = False,
+    ),
+  }
 )

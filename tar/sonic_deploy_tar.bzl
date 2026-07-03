@@ -6,7 +6,7 @@ load("@bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@bazel_lib//lib:utils.bzl", "propagate_common_rule_attributes")
 load("//binary:strip_binary.bzl", "strip_binary")
 
-def _sonic_deploy_tar_impl(name, binaries = {}, srcs = [], mtree = [], **kwargs):
+def _sonic_deploy_tar_impl(name, force_debug_build, binaries = {}, srcs = [], mtree = [], **kwargs):
   # We strip each binary and generate its mtree line pointing at the stripped ELF
   stripped_targets = []
   debug_targets = []
@@ -16,6 +16,7 @@ def _sonic_deploy_tar_impl(name, binaries = {}, srcs = [], mtree = [], **kwargs)
     strip_binary(
       name = stripped_name,
       src = binary,
+      force_debug_build = force_debug_build,
       **propagate_common_rule_attributes(kwargs)
     )
 
@@ -61,7 +62,7 @@ def _sonic_deploy_tar_impl(name, binaries = {}, srcs = [], mtree = [], **kwargs)
     name = name + ".debug_symbols",
     srcs = [":" + debug_symbols],
     mutate = mutate(
-      strip_prefix = debug_symbols,
+      strip_prefix = native.package_name() + "/" + debug_symbols,
       package_dir = "./usr/lib/debug",
     ),
     visibility = kwargs["visibility"],
@@ -89,6 +90,10 @@ The binary will then be replaced with its stripped version behind the scenes.
 """,
       default = {},
       configurable = False,
+    ),
+    "force_debug_build": attr.bool(
+      doc = "Whether the binaries should be rebuilt with debug information before stripping. This will override Bazel's regular CLI compilation instructions, like `--strip=never`",
+      default = False,
     ),
     # We do not allow mutate for now, as we rely on messing with the mtree.
     "mutate": None,
