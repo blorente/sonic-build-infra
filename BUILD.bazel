@@ -1,17 +1,4 @@
-load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("//config:constants.bzl", "ASIC_MANUFACTURERS", "BOOLEAN_TOGGLES", "DEVICES")
-
-buildifier(
-    name = "buildifier",
-    lint_mode = "fix",
-    mode = "fix",
-)
-
-buildifier(
-    name = "buildifier.check",
-    lint_mode = "warn",
-    mode = "diff",
-)
 
 alias(
     name = "asic_manufacturer",
