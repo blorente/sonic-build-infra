@@ -100,4 +100,3 @@ use_repo(
     "bookworm_libstdc--6-amd64_12.2.0-14-deb12u1",
 )
 
-# TODO(bazel-ready): Add auto-formatting with buildifier
