@@ -1,5 +1,5 @@
 load("@bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory_bin_action")
-load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 def _root_path(header, package):
     basedir = header.short_path[:-len(header.basename) - 1]

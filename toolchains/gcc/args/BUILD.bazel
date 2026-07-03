@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//rules/directory:subdirectory.bzl", "subdirectory")
 load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 
@@ -37,30 +36,41 @@ cc_args(
     actions = [
         "@rules_cc//cc/toolchains/actions:c_compile",
     ],
-    data = C_HEADERS.values(),
-    format = C_HEADERS,
     args = [
         # GCC builtin headers (stddef.h, stdarg.h, etc.) - must come first
-        "-isystem","{gcc-builtin}/lib/gcc/x86_64-linux/12.5.0/include",
+        "-isystem",
+        "{gcc-builtin}/lib/gcc/x86_64-linux/12.5.0/include",
 
         # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70129
         # libgcc include path - contains additional GCC headers for #include_next
-        "-isystem","{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
+        "-isystem",
+        "{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
 
         # Use -isystem for libc headers so CGO can find them (stdlib.h, etc.)
         # These come after GCC headers for proper #include_next resolution
-        "-isystem","{linux-libc}/usr/include",
-        "-isystem","{linux-libc}/usr/include/x86_64-linux-gnu",
-        "-isystem","{libc6}/usr/include",
-        "-isystem","{libc6}/usr/include/x86_64-linux-gnu",
+        "-isystem",
+        "{linux-libc}/usr/include",
+        "-isystem",
+        "{linux-libc}/usr/include/x86_64-linux-gnu",
+        "-isystem",
+        "{libc6}/usr/include",
+        "-isystem",
+        "{libc6}/usr/include/x86_64-linux-gnu",
 
         # Workaround for rules_rust cargo_build_script and rules_foreign_cc
-        "-idirafter","../../../../../../../{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
-        "-idirafter","../../../../../../../{linux-libc}/usr/include",
-        "-idirafter","../../../../../../../{linux-libc}/usr/include/x86_64-linux-gnu",
-        "-idirafter","../../../../../../../{libc6}/usr/include",
-        "-idirafter","../../../../../../../{libc6}/usr/include/x86_64-linux-gnu",
+        "-idirafter",
+        "../../../../../../../{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
+        "-idirafter",
+        "../../../../../../../{linux-libc}/usr/include",
+        "-idirafter",
+        "../../../../../../../{linux-libc}/usr/include/x86_64-linux-gnu",
+        "-idirafter",
+        "../../../../../../../{libc6}/usr/include",
+        "-idirafter",
+        "../../../../../../../{libc6}/usr/include/x86_64-linux-gnu",
     ],
+    data = C_HEADERS.values(),
+    format = C_HEADERS,
     visibility = ["//visibility:public"],
 )
 
@@ -70,34 +80,49 @@ cc_args(
     actions = [
         "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
     ],
-    data = HEADERS.values(),
-    format = HEADERS,
     args = [
         # GCC builtin headers (stddef.h, stdarg.h, etc.) - must come first
-        "-isystem","{gcc-builtin}/lib/gcc/x86_64-linux/12.5.0/include",
+        "-isystem",
+        "{gcc-builtin}/lib/gcc/x86_64-linux/12.5.0/include",
 
         # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70129
-        "-idirafter","{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
+        "-idirafter",
+        "{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
 
         # C++ headers must come before C headers for #include_next to work
-        "-idirafter","{libstdc}/usr/include/c++/12",
-        "-idirafter","{libstdc}/usr/include/x86_64-linux-gnu/c++/12",
+        "-idirafter",
+        "{libstdc}/usr/include/c++/12",
+        "-idirafter",
+        "{libstdc}/usr/include/x86_64-linux-gnu/c++/12",
 
         # Use -idirafter for libc headers in C++ to maintain correct search order for #include_next
-        "-idirafter","{linux-libc}/usr/include",
-        "-idirafter","{linux-libc}/usr/include/x86_64-linux-gnu",
-        "-idirafter","{libc6}/usr/include",
-        "-idirafter","{libc6}/usr/include/x86_64-linux-gnu",
+        "-idirafter",
+        "{linux-libc}/usr/include",
+        "-idirafter",
+        "{linux-libc}/usr/include/x86_64-linux-gnu",
+        "-idirafter",
+        "{libc6}/usr/include",
+        "-idirafter",
+        "{libc6}/usr/include/x86_64-linux-gnu",
 
         # Workaround for rules_rust cargo_build_script and rules_foreign_cc
-        "-idirafter","../../../../../../../{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
-        "-idirafter","../../../../../../../{libstdc}/usr/include/c++/12",
-        "-idirafter","../../../../../../../{libstdc}/usr/include/x86_64-linux-gnu/c++/12",
-        "-idirafter","../../../../../../../{linux-libc}/usr/include",
-        "-idirafter","../../../../../../../{linux-libc}/usr/include/x86_64-linux-gnu",
-        "-idirafter","../../../../../../../{libc6}/usr/include",
-        "-idirafter","../../../../../../../{libc6}/usr/include/x86_64-linux-gnu",
+        "-idirafter",
+        "../../../../../../../{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
+        "-idirafter",
+        "../../../../../../../{libstdc}/usr/include/c++/12",
+        "-idirafter",
+        "../../../../../../../{libstdc}/usr/include/x86_64-linux-gnu/c++/12",
+        "-idirafter",
+        "../../../../../../../{linux-libc}/usr/include",
+        "-idirafter",
+        "../../../../../../../{linux-libc}/usr/include/x86_64-linux-gnu",
+        "-idirafter",
+        "../../../../../../../{libc6}/usr/include",
+        "-idirafter",
+        "../../../../../../../{libc6}/usr/include/x86_64-linux-gnu",
     ],
+    data = HEADERS.values(),
+    format = HEADERS,
     visibility = ["//visibility:public"],
 )
 
@@ -110,29 +135,44 @@ cc_args(
     ],
     args = [
         # GCC builtin headers (stddef.h, stdarg.h, etc.) - must come first
-        "-isystem","{gcc-builtin}/lib/gcc/x86_64-linux/12.5.0/include",
+        "-isystem",
+        "{gcc-builtin}/lib/gcc/x86_64-linux/12.5.0/include",
 
         # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70129
-        "-idirafter","{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
+        "-idirafter",
+        "{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
 
         # C++ headers must come before C headers for #include_next to work
-        "-idirafter","{libstdc}/usr/include/c++/12",
-        "-idirafter","{libstdc}/usr/include/x86_64-linux-gnu/c++/12",
+        "-idirafter",
+        "{libstdc}/usr/include/c++/12",
+        "-idirafter",
+        "{libstdc}/usr/include/x86_64-linux-gnu/c++/12",
 
         # Use -idirafter for libc headers to support both C and C++ compilation
-        "-idirafter","{linux-libc}/usr/include",
-        "-idirafter","{linux-libc}/usr/include/x86_64-linux-gnu",
-        "-idirafter","{libc6}/usr/include",
-        "-idirafter","{libc6}/usr/include/x86_64-linux-gnu",
+        "-idirafter",
+        "{linux-libc}/usr/include",
+        "-idirafter",
+        "{linux-libc}/usr/include/x86_64-linux-gnu",
+        "-idirafter",
+        "{libc6}/usr/include",
+        "-idirafter",
+        "{libc6}/usr/include/x86_64-linux-gnu",
 
         # Workaround for rules_rust cargo_build_script and rules_foreign_cc
-        "-idirafter","../../../../../../../{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
-        "-idirafter","../../../../../../../{libstdc}/usr/include/c++/12",
-        "-idirafter","../../../../../../../{libstdc}/usr/include/x86_64-linux-gnu/c++/12",
-        "-idirafter","../../../../../../../{linux-libc}/usr/include",
-        "-idirafter","../../../../../../../{linux-libc}/usr/include/x86_64-linux-gnu",
-        "-idirafter","../../../../../../../{libc6}/usr/include",
-        "-idirafter","../../../../../../../{libc6}/usr/include/x86_64-linux-gnu",
+        "-idirafter",
+        "../../../../../../../{libgcc}/usr/lib/gcc/x86_64-linux-gnu/12/include",
+        "-idirafter",
+        "../../../../../../../{libstdc}/usr/include/c++/12",
+        "-idirafter",
+        "../../../../../../../{libstdc}/usr/include/x86_64-linux-gnu/c++/12",
+        "-idirafter",
+        "../../../../../../../{linux-libc}/usr/include",
+        "-idirafter",
+        "../../../../../../../{linux-libc}/usr/include/x86_64-linux-gnu",
+        "-idirafter",
+        "../../../../../../../{libc6}/usr/include",
+        "-idirafter",
+        "../../../../../../../{libc6}/usr/include/x86_64-linux-gnu",
     ],
     data = HEADERS.values(),
     format = HEADERS,
@@ -167,11 +207,16 @@ cc_args(
         "-Wl,-rpath=/usr/lib/x86_64-linux-gnu/gconv",
 
         # For rules_foreign_cc and rules_rust to work after changing its workdir
-        "-B","../../../../../../../{libc6}/lib/x86_64-linux-gnu",
-        "-B","../../../../../../../{libc6-dev}/usr/lib/x86_64-linux-gnu",
-        "-L","../../../../../../../{libgcc-s1}/lib/x86_64-linux-gnu",
-        "-L","../../../../../../../{libgcc-dev}/usr/lib/gcc/x86_64-linux-gnu/12",
-        "-L","../../../../../../../{libstdc}/usr/lib/gcc/x86_64-linux-gnu/12",
+        "-B",
+        "../../../../../../../{libc6}/lib/x86_64-linux-gnu",
+        "-B",
+        "../../../../../../../{libc6-dev}/usr/lib/x86_64-linux-gnu",
+        "-L",
+        "../../../../../../../{libgcc-s1}/lib/x86_64-linux-gnu",
+        "-L",
+        "../../../../../../../{libgcc-dev}/usr/lib/gcc/x86_64-linux-gnu/12",
+        "-L",
+        "../../../../../../../{libstdc}/usr/lib/gcc/x86_64-linux-gnu/12",
 
         # Link libc_nonshared.a to resolve atexit and other startup functions
         # Use -u to pull in specific symbols without --whole-archive (which causes duplicate definition errors

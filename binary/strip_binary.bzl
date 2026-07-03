@@ -83,28 +83,27 @@ _strip_binary_rule = rule(
 )
 
 def _strip_binary_impl(name, src, force_debug_build, **kwargs):
-  binary = src
-  if force_debug_build:
-    keep_debug_info_bin = "{}.debuggable".format(name)
-    keep_debug_info(name = keep_debug_info_bin, src = src)
-    binary = ":{}".format(keep_debug_info_bin)
+    binary = src
+    if force_debug_build:
+        keep_debug_info_bin = "{}.debuggable".format(name)
+        keep_debug_info(name = keep_debug_info_bin, src = src)
+        binary = ":{}".format(keep_debug_info_bin)
 
-  _strip_binary_rule(
-    name = name,
-    src = binary,
-    **kwargs,
- )
-
+    _strip_binary_rule(
+        name = name,
+        src = binary,
+        **kwargs
+    )
 
 strip_binary = macro(
     doc = "Takes a single compiled ELF target and produces (a) a stripped version with debug " +
           "info removed, and (b) the extracted debug symbols as a <build-id>.debug file. ",
-  implementation = _strip_binary_impl,
-  inherit_attrs = _strip_binary_rule,
-  attrs = {
-    "force_debug_build": attr.bool(
-      doc = "Whether the binary should be rebuilt with debug information before stripping. This will override Bazel's regular CLI compilation instructions, like `--strip=never`",
-      default = False,
-    ),
-  }
+    implementation = _strip_binary_impl,
+    inherit_attrs = _strip_binary_rule,
+    attrs = {
+        "force_debug_build": attr.bool(
+            doc = "Whether the binary should be rebuilt with debug information before stripping. This will override Bazel's regular CLI compilation instructions, like `--strip=never`",
+            default = False,
+        ),
+    },
 )

@@ -1,4 +1,5 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load(":constants.bzl", "ASIC_MANUFACTURERS", "BOOLEAN_TOGGLES", "DEVICES")
 
 package(default_visibility = ["//visibility:public"])
