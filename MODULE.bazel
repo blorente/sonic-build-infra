@@ -70,18 +70,42 @@ apt.sources_list(
 )
 apt.install(
     dependency_set = "bookworm",
-    packages = [
+    packages = [ # do not sort
+        # for the //toolchains/gcc
         "libc6-dev",
         "libgcc-12-dev",
         "libstdc++-12-dev",
         "libstdc++6",
         "linux-libc-dev",
 
-        # Go/Gazelle does not let us inject cgo deps in a clean way.
-        # So we have to inject these deps into every c compilation.
-        # https://github.com/bazel-contrib/bazel-gazelle/issues/1543
-        # https://github.com/bazel-contrib/bazel-gazelle/issues/2261
-        # TODO:  add here libpam0g
+        # debug utilities
+        "gdb",
+        "gdbserver",
+        "vim",
+        "strace",
+        "openssh-client",
+        "sshpass",
+
+        # for sonic-swss-common
+        "nlohmann-json3-dev",
+        "libhiredis-dev",
+        "libboost-dev",
+        "libboost-serialization-dev",
+        "uuid-dev",
+        "libzmq3-dev",
+        "libyang2-dev",
+        "swig",
+        "python3-dev",
+
+        # for docker-sysmgr
+        "libdbus-1-3",
+        "libdbus-c++-1-0v5",
+        "libprotobuf32",
+
+        # for sonic-sysmgr
+        "libdbus-c++-1-0v5", # This provides the right library for -ldbus-c++1, which is what we should actually be using.
+        "libdbus-c++-bin",
+        "libdbus-c++-dev",
     ],
     suites = [
         "bookworm",
@@ -89,8 +113,18 @@ apt.install(
         "bookworm-security",
     ],
 )
+
 use_repo(
     apt,
+    # Re-export the hub repo, so that dependents on sonic-build-infra can get the whole central list
+    # without having to declare their own dependencies.
+    #
+    # Dependents can use it by importing `sonic-build-infra` and loading it:
+    #     apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
+    #     use_repo(apt, "bookworm")
+    "bookworm",
+
+    # Dependencies we need to use exactly as-is for this repository.
     "bookworm-security_linux-libc-dev-amd64_6.1.153-1",
     "bookworm_libc6-amd64_2.36-9-deb12u13",
     "bookworm_libc6-dev-amd64_2.36-9-deb12u13",
@@ -99,4 +133,3 @@ use_repo(
     "bookworm_libstdc---12-dev-amd64_12.2.0-14-deb12u1",
     "bookworm_libstdc--6-amd64_12.2.0-14-deb12u1",
 )
-
