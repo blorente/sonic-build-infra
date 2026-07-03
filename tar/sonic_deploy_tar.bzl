@@ -6,6 +6,11 @@ load("@tar.bzl//tar:mtree.bzl", "mutate")
 load("@tar.bzl//tar:tar.bzl", "tar", "tar_rule")
 load("//binary:strip_binary.bzl", "strip_binary")
 
+def _join_package(path):
+    """Prefix `path` with the current package, without a leading slash at the root."""
+    pkg = native.package_name()
+    return pkg + "/" + path if pkg else path
+
 def _sonic_deploy_tar_impl(name, force_debug_build, binaries = {}, srcs = [], mtree = [], **kwargs):
     # We strip each binary and generate its mtree line pointing at the stripped ELF
     stripped_targets = []
@@ -62,7 +67,7 @@ def _sonic_deploy_tar_impl(name, force_debug_build, binaries = {}, srcs = [], mt
         name = name + ".debug_symbols",
         srcs = [":" + debug_symbols],
         mutate = mutate(
-            strip_prefix = native.package_name() + "/" + debug_symbols,
+            strip_prefix = _join_package(debug_symbols),
             package_dir = "./usr/lib/debug",
         ),
         visibility = kwargs["visibility"],
