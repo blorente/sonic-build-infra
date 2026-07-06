@@ -4,12 +4,16 @@ load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
+load("@rules_distroless//distroless:defs.bzl", "flatten")
 load("@tar.bzl", "mutate", "tar")
+load("//binary:assert_debug_symbols.bzl", "provides_debug_symbols_test")
 load("//binary:assert_stripped.bzl", "assert_stripped")
 load("//binary:keep_debug_info.bzl", "keep_debug_info")
 load("//binary:strip_binary.bzl", "strip_binary")
+load("//oci:debug_symbols_layer.bzl", "debug_symbols_layer")
 load("//tar:assert_tar.bzl", "assert_tar")
 load("//tar:sonic_deploy_tar.bzl", "sonic_deploy_tar")
+load(":image_stub.bzl", "image_stub")
 
 #############################
 #   assert_tar & tar tests  #
@@ -123,6 +127,11 @@ strip_binary(
 assert_stripped(
     name = "hello_strip_test",
     strip_target = ":hello_strip",
+)
+
+provides_debug_symbols_test(
+    name = "hello_strip_provides_debug_symbols_test",
+    target_under_test = ":hello_strip",
 )
 
 # Same flow, but for a shared library (.so) via cc_binary(linkshared = True).
@@ -248,8 +257,47 @@ assert_tar(
     tar = ":hello_deploy_tar.debug_symbols",
 )
 
-# Prove sonic_deploy_tar works with a binary from a *different bazel module*:
-# strip it, build the stripped payload tar and the .build-id debug tar.
+# The deploy tar target itself must carry DebugSymbolsInfo for the binaries it packages.
+provides_debug_symbols_test(
+    name = "hello_deploy_tar_provides_debug_symbols_test",
+    target_under_test = ":hello_deploy_tar",
+)
+
+# Test that we can push through `flatten` targets.
+flatten(
+    name = "hello_runtime_layer",
+    tars = [":hello_deploy_tar"],
+)
+
+debug_symbols_layer(
+    name = "hello_collected_debug_symbols",
+    image = ":hello_runtime_layer",
+)
+
+assert_tar(
+    name = "hello_collected_debug_symbols_assert",
+    expected = ":hello_deploy_tar_debug.expected.txt",
+    tar = ":hello_collected_debug_symbols",
+)
+
+# Test that we can push through `base`.
+image_stub(
+    name = "hello_base_image",
+    base = ":hello_deploy_tar",
+)
+
+debug_symbols_layer(
+    name = "hello_base_collected_debug_symbols",
+    image = ":hello_base_image",
+)
+
+assert_tar(
+    name = "hello_base_collected_debug_symbols_assert",
+    expected = ":hello_deploy_tar_debug.expected.txt",
+    tar = ":hello_base_collected_debug_symbols",
+)
+
+# Test that we can work with binaries from a different module.
 sonic_deploy_tar(
     name = "external_deploy_tar",
     binaries = {

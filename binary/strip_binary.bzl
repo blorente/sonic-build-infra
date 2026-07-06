@@ -1,9 +1,9 @@
 """Rule that splits a compiled binary into its stripped form and its debug symbols.
 
-Behaviour mirrors Debian's dh_strip:
-It is language-agnostic and operates on the ELF directly via binutils objcopy.
+Behaviour mirrors Debian's dh_strip. It operates on ELFs directly via binutils objcopy.
 """
 
+load(":debug_symbols.bzl", "DebugSymbolsInfo")
 load(":keep_debug_info.bzl", "keep_debug_info")
 
 def _strip_binary_rule_impl(ctx):
@@ -44,6 +44,7 @@ def _strip_binary_rule_impl(ctx):
             stripped = depset([stripped]),
             debug = depset([debug]),
         ),
+        DebugSymbolsInfo(symbols = depset([debug])),
     ]
 
 _strip_binary_rule = rule(

@@ -1,20 +1,43 @@
 """Rule to wrap tar(), which ensures binaries are stripped, and creates tars with debug symbols"""
 
-load("@bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@bazel_lib//lib:utils.bzl", "propagate_common_rule_attributes")
-load("@tar.bzl//tar:mtree.bzl", "mutate")
 load("@tar.bzl//tar:tar.bzl", "tar", "tar_rule")
+load("//binary:debug_symbols.bzl", "DebugSymbolsInfo")
 load("//binary:strip_binary.bzl", "strip_binary")
+load(":debug_symbols_tar.bzl", "debug_symbols_tar")
 
-def _join_package(path):
-    """Prefix `path` with the current package, without a leading slash at the root."""
-    pkg = native.package_name()
-    return pkg + "/" + path if pkg else path
+def _runtime_tar_impl(ctx):
+    tar_info = ctx.attr.tar[DefaultInfo]
+    return [
+        DefaultInfo(
+            files = tar_info.files,
+            runfiles = tar_info.default_runfiles,
+        ),
+        DebugSymbolsInfo(symbols = depset(
+            transitive = [b[DebugSymbolsInfo].symbols for b in ctx.attr.binaries],
+        )),
+    ]
+
+_runtime_tar = rule(
+    implementation = _runtime_tar_impl,
+    doc = "Re-exports a tar target's DefaultInfo and the collected DebugSymbolsInfos of its deps, for convenience. Without this, we'd have to reach into the attributes of `tar`.",
+    attrs = {
+        "tar": attr.label(
+            mandatory = True,
+            doc = "The underlying tar, forwarded unchanged",
+        ),
+        "binaries": attr.label_list(
+            providers = [DebugSymbolsInfo],
+            doc = "strip_binary targets packaged in `tar`. Their DebugSymbolsInfo is accumulated.",
+        ),
+    },
+)
 
 def _sonic_deploy_tar_impl(name, force_debug_build, binaries = {}, srcs = [], mtree = [], **kwargs):
     # We strip each binary and generate its mtree line pointing at the stripped ELF
     stripped_targets = []
     debug_targets = []
+    debug_symbol_targets = []
     binary_mtree = []
     for mtree_prefix, binary in binaries.items():
         stripped_name = "{}_{}_stripped".format(name, binary.name)
@@ -24,6 +47,7 @@ def _sonic_deploy_tar_impl(name, force_debug_build, binaries = {}, srcs = [], mt
             force_debug_build = force_debug_build,
             **propagate_common_rule_attributes(kwargs)
         )
+        debug_symbol_targets.append(":" + stripped_name)
 
         # Pick apart the stripped binary and debug symbols
         stripped_file = stripped_name + "_file"
@@ -44,36 +68,43 @@ def _sonic_deploy_tar_impl(name, force_debug_build, binaries = {}, srcs = [], mt
         )
         debug_targets.append(":" + debug_file)
 
+    # The runtime tar is an implementation detail kept private to this package;
+    # `name` is the wrapper below, which forwards this tar's DefaultInfo unchanged
+    # and attaches DebugSymbolsInfo.
+    rttar_kwargs = dict(kwargs)
+    rttar_kwargs.pop("visibility", None)
     tar(
-        name = name,
+        name = name + "_rttar",
         srcs = srcs + stripped_targets,
         mtree = mtree + binary_mtree,
-        **kwargs
+        visibility = ["//visibility:private"],
+        **rttar_kwargs
     )
 
-    # A second archive with ONLY the debug symbols,
-    # laid out as /usr/lib/debug/.build-id/NN/REST.debug
-    # for each binary, following GDB conventions.
-    #
-    # Should be loadable as an OCI container layer directly.
-    debug_symbols = "{}_debug_symbols".format(name)
-    copy_to_directory(
-        name = debug_symbols,
-        srcs = debug_targets,
-        # Strip the per-target path, and leave just the `.build-id/NN/REST.debug` part.
-        replace_prefixes = {"**/.build-id": ".build-id"},
+
+    # Results:
+    # - One tar that contains the stripped binaries and exposes `DebugSymbolsInfo`, and
+    # - One tar that contains only the debug symbols, for conveninece.
+    _runtime_tar(
+        name = name,
+        tar = ":" + name + "_rttar",
+        binaries = debug_symbol_targets,
+        visibility = kwargs["visibility"],
     )
-    tar(
+
+    debug_symbols_tar(
         name = name + ".debug_symbols",
-        srcs = [":" + debug_symbols],
-        mutate = mutate(
-            strip_prefix = _join_package(debug_symbols),
-            package_dir = "./usr/lib/debug",
-        ),
+        srcs = debug_targets,
         visibility = kwargs["visibility"],
     )
 
 sonic_deploy_tar = macro(
+    doc = """Wrapper around tar(), which ensures binaries are stripped, and creates tars with debug symbols.
+
+It produces two targets:
+- `:<name>`: A tar containing stripped binaries. It behaves exactly as a `tar()`, except this target is augmented to return a `DebugSymbolsInfo` provider, containing the debug symbols of all its binaries.
+- `:<name>.debug_symbols`: A standalone tar containing the debug symbols from the binaries on this tar.
+""",
     implementation = _sonic_deploy_tar_impl,
     inherit_attrs = tar_rule,
     attrs = {

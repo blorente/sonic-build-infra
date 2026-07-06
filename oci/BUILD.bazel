@@ -1,0 +1,2 @@
+# Rules for assembling OCI images, specifically for SONiC.
+# For instance, we have special utilities to assemble debug images easily.
