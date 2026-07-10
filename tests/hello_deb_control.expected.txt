@@ -1,0 +1,6 @@
+Package: hello
+Version: 1.0
+Architecture: amd64
+Maintainer: SONiC <sonic@example.com>
+Depends: libc6 (>= 2.34)
+Description: Hello test package

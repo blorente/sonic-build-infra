@@ -10,6 +10,8 @@ load("//binary:assert_debug_symbols.bzl", "provides_debug_symbols_test")
 load("//binary:assert_stripped.bzl", "assert_stripped")
 load("//binary:keep_debug_info.bzl", "keep_debug_info")
 load("//binary:strip_binary.bzl", "strip_binary")
+load("//deb:assert_deb.bzl", "assert_deb_control", "assert_deb_md5sums", "assert_deb_members")
+load("//deb:sonic_deb.bzl", "sonic_deb")
 load("//oci:debug_symbols_layer.bzl", "debug_symbols_layer")
 load("//tar:assert_tar.bzl", "assert_tar")
 load("//tar:sonic_deploy_tar.bzl", "sonic_deploy_tar")
@@ -317,4 +319,71 @@ build_test(
         ":external_deploy_tar",
         ":external_deploy_tar.debug_symbols",
     ],
+)
+
+#############################
+#   sonic_deb tests         #
+#############################
+
+tar(
+    name = "hello_deb_data",
+    srcs = ["//tests/testdata:file.txt"],
+    mtree = [
+        ". time=946699200 mode=0755 type=dir",
+        "./usr uid=0 gid=0 time=946699200 mode=0755 type=dir",
+        "./usr/share uid=0 gid=0 time=946699200 mode=0755 type=dir",
+        "./usr/share/hello uid=0 gid=0 time=946699200 mode=0755 type=dir",
+        "./usr/share/hello/file.txt uid=0 gid=0 time=1672560000 mode=0644 type=file content=$(location //tests/testdata:file.txt)",
+    ],
+)
+
+sonic_deb(
+    name = "hello_1.0_amd64.deb",
+    data = ":hello_deb_data",
+    depends = ["libc6 (>= 2.34)"],
+    description = "Hello test package",
+    maintainer = "SONiC <sonic@example.com>",
+    package = "hello",
+    version = "1.0",
+)
+
+build_test(
+    name = "hello_deb_build_test",
+    targets = [":hello_1.0_amd64.deb"],
+)
+
+assert_deb_members(
+    name = "hello_deb_members_assert",
+    deb = ":hello_1.0_amd64.deb",
+    expected = ":hello_deb_members.expected.txt",
+)
+
+assert_deb_control(
+    name = "hello_deb_control_assert",
+    deb = ":hello_1.0_amd64.deb",
+    expected = ":hello_deb_control.expected.txt",
+)
+
+assert_deb_md5sums(
+    name = "hello_deb_md5sums_assert",
+    deb = ":hello_1.0_amd64.deb",
+    expected = ":hello_deb_md5sums.expected.txt",
+)
+
+# The -dbg package goes through the same data= path, fed by sonic_deploy_tar's
+# `.debug_symbols` sibling. Its content (build-id-named .debug files) is not
+# deterministic, so this is a build_test only.
+sonic_deb(
+    name = "hello-dbg_1.0_amd64.deb",
+    data = ":hello_deploy_tar.debug_symbols",
+    depends = ["hello (= 1.0)"],
+    description = "Debug symbols for hello",
+    maintainer = "SONiC <sonic@example.com>",
+    package = "hello-dbg",
+    version = "1.0",
+)
+
+build_test(
+    name = "hello_dbg_deb_build_test",
+    targets = [":hello-dbg_1.0_amd64.deb"],
 )
