@@ -12,6 +12,25 @@ load("@tar.bzl", "tar")
 
 _TAR_TOOLCHAIN = "@tar.bzl//tar/toolchain:type"
 
+# Map each Bazel CPU constraint to its Debian arch name
+# so the architecture is derived from the target platform:
+#   `bazel build --platforms=//...:arm64` yields an arm64 deb.
+# Unlisted CPUs fail fast at analysis.
+_CPU_TO_DEB_ARCH = {
+    Label("@platforms//cpu:x86_64"): "amd64",
+    Label("@platforms//cpu:aarch64"): "arm64",
+    Label("@platforms//cpu:armv7"): "armhf",
+}
+
+_UNSUPPORTED_CPU_ERROR = "sonic_deb: unsupported target CPU. Supported: amd64/arm64/armhf."
+
+_DEB_ARCH = select(_CPU_TO_DEB_ARCH, no_match_error = _UNSUPPORTED_CPU_ERROR)
+
+_DEB_ARCH_LINE = select(
+    {cpu: ["Architecture: %s" % arch] for cpu, arch in _CPU_TO_DEB_ARCH.items()},
+    no_match_error = _UNSUPPORTED_CPU_ERROR,
+)
+
 def _sonic_md5sums_from_tar_impl(ctx):
     """Generate the dpkg `md5sums` control file by streaming the data tar."""
     out = ctx.actions.declare_file(ctx.label.name + ".md5sums")
@@ -45,26 +64,31 @@ _sonic_md5sums_from_tar = rule(
     },
 )
 
-def _sonic_control_tar_impl(name, visibility, package, version, architecture, maintainer, description, depends, md5sums_file):
+def _sonic_control_tar_impl(name, visibility, package, version, maintainer, description, depends, md5sums_file):
     # dpkg requires Package, Version, Architecture, Maintainer, Description.
     # Depends is the only relationship field we carry (SONiC hand-writes it).
     control_lines = [
         "Package: %s" % package,
         "Version: %s" % version,
-        "Architecture: %s" % architecture,
         "Maintainer: %s" % maintainer,
     ]
     if depends:
         control_lines.append("Depends: %s" % ", ".join(depends))
-    control_lines.append("Description: %s" % description)
 
-    # write_file doesn't add a newline at the end, we need to do that
-    control_lines.append("")
+    # Architecture is derived at analysis time from --platform,
+    # which menas it's a select() (and not a string),
+    # which means we can only concatenate it into the list.
+    content = control_lines + _DEB_ARCH_LINE + [
+        # Description comes last, as it may be a multiline string.
+        "Description: %s" % description,
+        # Extra necessary empty line, because write_line doesn't add it.
+        "",
+    ]
 
     write_file(
         name = name + "_file",
         out = name + ".control",
-        content = control_lines,
+        content = content,
     )
 
     tar(
@@ -86,7 +110,6 @@ _sonic_control_tar = macro(
     attrs = {
         "package": attr.string(mandatory = True, configurable = False),
         "version": attr.string(mandatory = True, configurable = False),
-        "architecture": attr.string(default = "amd64", configurable = False),
         "maintainer": attr.string(default = "", configurable = False),
         "description": attr.string(default = "", configurable = False),
         "depends": attr.string_list(configurable = False),
@@ -96,7 +119,12 @@ _sonic_control_tar = macro(
 
 def _sonic_deb_assemble_impl(ctx):
     """Assemble the .deb (ar of debian-binary + control.tar.gz + data.tar.gz)."""
-    output_deb = ctx.actions.declare_file(ctx.attr.package_file_name)
+
+    # Debian filename convention: <package>_<version>_<arch>.deb. We're in a rule
+    # impl (analysis time), so ctx.attr.architecture is a concrete string even
+    # though the caller passed a platform-derived select().
+    deb_name = "{}_{}_{}.deb".format(ctx.attr.package, ctx.attr.version, ctx.attr.architecture)
+    output_deb = ctx.actions.declare_file(deb_name)
 
     # `ar` comes from the CC toolchain.
     cc_toolchain = find_cc_toolchain(ctx)
@@ -142,7 +170,7 @@ cp "{control_tar}" "$WORKDIR/control.tar.gz"
         tools = bsdtar.default.files,
         command = script,
         mnemonic = "DebAssemble",
-        progress_message = "Assembling %s" % ctx.attr.package_file_name,
+        progress_message = "Assembling %s" % deb_name,
     )
     return [DefaultInfo(files = depset([output_deb]))]
 
@@ -152,13 +180,15 @@ _sonic_deb_assemble = rule(
     attrs = {
         "data_tar": attr.label(mandatory = True, allow_single_file = True),
         "control_tar": attr.label(mandatory = True, allow_single_file = True),
-        "package_file_name": attr.string(mandatory = True),
+        "package": attr.string(mandatory = True, doc = "Debian `Package:`; first field of the .deb filename."),
+        "version": attr.string(mandatory = True, doc = "Debian `Version:`; second field of the .deb filename."),
+        "architecture": attr.string(mandatory = True, doc = "Debian arch; third field of the .deb filename. Pass the platform-derived _DEB_ARCH select()."),
     },
     fragments = ["cpp"],
     toolchains = use_cc_toolchain() + [_TAR_TOOLCHAIN],
 )
 
-def _sonic_deb_impl(name, visibility, data, package, version, architecture, maintainer, description, depends):
+def _sonic_deb_impl(name, visibility, data, package, version, maintainer, description, depends):
     md5sums = name + "_md5sums"
     control = name + "_control"
 
@@ -170,7 +200,6 @@ def _sonic_deb_impl(name, visibility, data, package, version, architecture, main
         name = control,
         package = package,
         version = version,
-        architecture = architecture,
         maintainer = maintainer,
         description = description,
         depends = depends,
@@ -180,14 +209,17 @@ def _sonic_deb_impl(name, visibility, data, package, version, architecture, main
         name = name,
         data_tar = data,
         control_tar = ":" + control,
-        package_file_name = name,
+        package = package,
+        version = version,
+        architecture = _DEB_ARCH,
         visibility = visibility,
     )
 
 sonic_deb = macro(
-    doc = """Build a `.deb` whose output file is named exactly `name`.
+    doc = """Build a `.deb`.
 
-    `name` must be the full Debian filename, e.g. `sysmgr_1.0.0_amd64.deb`.
+    The output file is named `<package>_<version>_<arch>.deb`,
+    with `arch` derived from the target platform (i.e. `--platform` flag).
 
     Only the dpkg-required control fields plus `Depends` are emitted.
     Add further fields / maintainer scripts (e.g. `Homepage`) here when a migrated package needs them.
@@ -202,7 +234,6 @@ sonic_deb = macro(
         ),
         "package": attr.string(mandatory = True, configurable = False, doc = "Debian `Package:` field."),
         "version": attr.string(mandatory = True, configurable = False, doc = "Debian `Version:` field."),
-        "architecture": attr.string(default = "amd64", configurable = False, doc = "Debian `Architecture:` field."),
         "maintainer": attr.string(default = "", configurable = False, doc = "Debian `Maintainer:` field."),
         "description": attr.string(default = "", configurable = False, doc = "Debian `Description:` field."),
         "depends": attr.string_list(configurable = False, doc = "Debian `Depends:` list (hand-written; no auto-shlibs)."),

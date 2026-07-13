@@ -338,7 +338,7 @@ tar(
 )
 
 sonic_deb(
-    name = "hello_1.0_amd64.deb",
+    name = "hello_deb",
     data = ":hello_deb_data",
     depends = ["libc6 (>= 2.34)"],
     description = "Hello test package",
@@ -349,24 +349,24 @@ sonic_deb(
 
 build_test(
     name = "hello_deb_build_test",
-    targets = [":hello_1.0_amd64.deb"],
+    targets = [":hello_deb"],
 )
 
 assert_deb_members(
     name = "hello_deb_members_assert",
-    deb = ":hello_1.0_amd64.deb",
+    deb = ":hello_deb",
     expected = ":hello_deb_members.expected.txt",
 )
 
 assert_deb_control(
     name = "hello_deb_control_assert",
-    deb = ":hello_1.0_amd64.deb",
+    deb = ":hello_deb",
     expected = ":hello_deb_control.expected.txt",
 )
 
 assert_deb_md5sums(
     name = "hello_deb_md5sums_assert",
-    deb = ":hello_1.0_amd64.deb",
+    deb = ":hello_deb",
     expected = ":hello_deb_md5sums.expected.txt",
 )
 
@@ -374,7 +374,7 @@ assert_deb_md5sums(
 # `.debug_symbols` sibling. Its content (build-id-named .debug files) is not
 # deterministic, so this is a build_test only.
 sonic_deb(
-    name = "hello-dbg_1.0_amd64.deb",
+    name = "hello_dbg_deb",
     data = ":hello_deploy_tar.debug_symbols",
     depends = ["hello (= 1.0)"],
     description = "Debug symbols for hello",
@@ -385,5 +385,5 @@ sonic_deb(
 
 build_test(
     name = "hello_dbg_deb_build_test",
-    targets = [":hello-dbg_1.0_amd64.deb"],
+    targets = [":hello_dbg_deb"],
 )
