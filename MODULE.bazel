@@ -33,28 +33,35 @@ fetch_gcc = use_repo_rule("//toolchains/gcc:gcc.bzl", "fetch_gcc")
 
 fetch_gcc(
     name = "gcc-linux-target-x86_64-host-x86_64",
-    integrity = "sha256-UQduF1g5tDS7LcAAbACWkW31hejERmbTWw486CHVNds=",
+    integrity = "sha256-OMlAdKIcGumB+5E4tGU9uMPlsObmJ7nv8YVg5ZjgGbQ=",
     target_arch = "x86_64",
-    urls = ["https://github.com/f0rmiga/gcc-builds/releases/download/18082025/gcc-toolchain-12.5.0-x86_64.tar.xz"],
+    urls = ["https://github.com/blorente/gcc-builds/releases/download/13-07-2026/gcc-toolchain-12.5.0-x86_64.tar.xz"],
+    version = "12.5.0",
 )
 
-# TODO BL: Replace the placeholder integrity and local file:// URL with the
-# published release artifact once it exists.
 fetch_gcc(
     name = "gcc-linux-target-aarch64-host-aarch64",
-    integrity = "sha256-PLACEHOLDER-REPLACE-WITH-REAL-AARCH64-BUNDLE-HASH=",
+    integrity = "sha256-uDAQn8vGob0lhpFI8MNHZi6hHY1HvDxs+4+ZKLSu67s=",
     target_arch = "aarch64",
-    urls = ["file:///home/blorente/code/github.com/f0rmiga/gcc-builds/gcc-toolchain-12.5.0-aarch64-host-aarch64.tar.xz"],
+    urls = ["https://github.com/blorente/gcc-builds/releases/download/13-07-2026/gcc-toolchain-12.5.0-aarch64-host-aarch64.tar.xz"],
+    version = "12.5.0",
 )
 
 register_toolchains(
     "//toolchains/gcc:host_x86_64_gcc_toolchain",
     "//toolchains/gcc:host_aarch64_gcc_toolchain",
+    "//toolchains/binutils:host_x86_64_binutils_toolchain",
+    "//toolchains/binutils:host_aarch64_binutils_toolchain",
 )
+
+ARCHITECTURES = [
+    "amd64",
+    "arm64",
+]
 
 apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
 apt.sources_list(
-    architectures = ["amd64"],
+    architectures = ARCHITECTURES,
     components = ["main"],
     suites = [
         "bookworm",
@@ -63,21 +70,33 @@ apt.sources_list(
     uris = ["https://snapshot.debian.org/archive/debian/20251001T023456Z"],
 )
 apt.sources_list(
-    architectures = ["amd64"],
+    architectures = ARCHITECTURES,
     components = ["main"],
     suites = ["bookworm-security"],
     uris = ["https://snapshot.debian.org/archive/debian-security/20251001T023456Z"],
 )
+
+# The cc toolchains' sysroot: libc, libstdc++ and kernel headers.
+# We keep it in a separate apt install set so that the toolchain can resolve
+# without fetching the entire closure of packages.
 apt.install(
-    dependency_set = "bookworm",
-    packages = [ # do not sort
-        # for the //toolchains/gcc
+    dependency_set = "sysroot",
+    packages = [
         "libc6-dev",
         "libgcc-12-dev",
         "libstdc++-12-dev",
-        "libstdc++6",
         "linux-libc-dev",
-
+    ],
+    suites = [
+        "bookworm",
+        "bookworm-updates",
+        "bookworm-security",
+    ],
+)
+apt.install(
+    dependency_set = "bookworm",
+    packages = [
+        # do not sort
         # debug utilities
         "gdb",
         "gdbserver",
@@ -103,7 +122,6 @@ apt.install(
         "libprotobuf32",
 
         # for sonic-sysmgr
-        "libdbus-c++-1-0v5", # This provides the right library for -ldbus-c++1, which is what we should actually be using.
         "libdbus-c++-bin",
         "libdbus-c++-dev",
     ],
@@ -113,7 +131,6 @@ apt.install(
         "bookworm-security",
     ],
 )
-
 use_repo(
     apt,
     # Re-export the hub repo, so that dependents on sonic-build-infra can get the whole central list
@@ -124,12 +141,28 @@ use_repo(
     #     use_repo(apt, "bookworm")
     "bookworm",
 
-    # Dependencies we need to use exactly as-is for this repository.
-    "bookworm-security_linux-libc-dev-amd64_6.1.153-1",
-    "bookworm_libc6-amd64_2.36-9-deb12u13",
-    "bookworm_libc6-dev-amd64_2.36-9-deb12u13",
-    "bookworm_libgcc-12-dev-amd64_12.2.0-14-deb12u1",
-    "bookworm_libgcc-s1-amd64_12.2.0-14-deb12u1",
-    "bookworm_libstdc---12-dev-amd64_12.2.0-14-deb12u1",
-    "bookworm_libstdc--6-amd64_12.2.0-14-deb12u1",
+    # The cc toolchains' sysroot, resolved per architecture.
+    "sysroot",
 )
+
+# Raw apt package repos the cc toolchains reach into (see use_repo below).
+SYSROOT_PACKAGE_REPO_TEMPLATES = [
+    "bookworm-security_linux-libc-dev-{arch}_6.1.153-1",
+    "bookworm_libc6-{arch}_2.36-9-deb12u13",
+    "bookworm_libc6-dev-{arch}_2.36-9-deb12u13",
+    "bookworm_libgcc-12-dev-{arch}_12.2.0-14-deb12u1",
+    "bookworm_libgcc-s1-{arch}_12.2.0-14-deb12u1",
+    "bookworm_libstdc---12-dev-{arch}_12.2.0-14-deb12u1",
+    "bookworm_libstdc--6-{arch}_12.2.0-14-deb12u1",
+]
+
+SYSROOT_PACKAGE_REPOS = [
+    template.format(arch = arch)
+    for template in SYSROOT_PACKAGE_REPO_TEMPLATES
+    for arch in ARCHITECTURES
+]
+
+[
+    use_repo(apt, repo)
+    for repo in SYSROOT_PACKAGE_REPOS
+]

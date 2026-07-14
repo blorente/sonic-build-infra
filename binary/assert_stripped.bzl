@@ -1,27 +1,22 @@
 """Assertion macro that verifies a strip_binary target stripped its input correctly.
 """
 
+load("//toolchains/binutils:binutils_toolchain.bzl", "BINUTILS_TOOLCHAIN_TYPE")
+
 def _assert_stripped_test_impl(ctx):
-    objdump = ctx.executable._objdump
-    readelf = ctx.executable._readelf
+    binutils = ctx.toolchains[BINUTILS_TOOLCHAIN_TYPE].binutils
+    objdump = binutils.objdump.executable
+    readelf = binutils.readelf.executable
 
     stripped = ctx.file.stripped
     debug = ctx.file.debug  # the build-id-named .debug TreeArtifact directory
     test_script = ctx.file._test_script
 
-    # The script itself is the test executable; it reads its inputs from the
-    # environment rather than argv. Symlink it into place under this rule's name.
     exe = ctx.actions.declare_file(ctx.label.name + ".sh")
     ctx.actions.symlink(output = exe, target_file = test_script, is_executable = True)
 
-    runfiles = ctx.runfiles(files = [stripped, debug])
-    runfiles = runfiles.merge(ctx.attr._objdump[DefaultInfo].default_runfiles)
-    runfiles = runfiles.merge(ctx.attr._readelf[DefaultInfo].default_runfiles)
-
-    # objdump and readelf are both passed explicitly from the toolchain's tools
-    # package (readelf has no CcToolchainInfo field, so for consistency objdump
-    # comes the same way). Paths are runfiles-relative: cwd at test time is the
-    # runfiles root, and each tool's binary is brought in via its runfiles above.
+    # Paths are runfiles-relative: cwd at test time is the runfiles root,
+    # and each tool's binary is brought in via the runfiles.
     env = {
         "OBJDUMP": objdump.short_path,
         "READELF": readelf.short_path,
@@ -29,13 +24,17 @@ def _assert_stripped_test_impl(ctx):
         "DEBUG_DIR": debug.short_path,
     }
     return [
-        DefaultInfo(executable = exe, runfiles = runfiles),
+        DefaultInfo(
+            executable = exe,
+            runfiles = ctx.runfiles(files = [stripped, debug, objdump, readelf]),
+        ),
         RunEnvironmentInfo(environment = env),
     ]
 
 _assert_stripped_test = rule(
     implementation = _assert_stripped_test_impl,
     test = True,
+    toolchains = [BINUTILS_TOOLCHAIN_TYPE],
     attrs = {
         "stripped": attr.label(
             mandatory = True,
@@ -51,18 +50,6 @@ _assert_stripped_test = rule(
             default = "//binary:test_stripped_binary.sh",
             allow_single_file = True,
             doc = "The shell script holding the actual assertions.",
-        ),
-        "_objdump": attr.label(
-            default = "//toolchains/gcc/tools:objdump",
-            executable = True,
-            cfg = "exec",
-            doc = "objdump binary. We can't read it from the toolchain, so we depend on it directly.",
-        ),
-        "_readelf": attr.label(
-            default = "//toolchains/gcc/tools:readelf",
-            executable = True,
-            cfg = "exec",
-            doc = "readelf binary. We can't read it from the toolchain, so we depend on it directly.",
         ),
     },
 )

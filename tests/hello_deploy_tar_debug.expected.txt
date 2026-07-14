@@ -3,5 +3,5 @@ drwxr-xr-x  0 0      0           0 Jan  1  2000 ./usr/
 drwxr-xr-x  0 0      0           0 Jan  1  2000 ./usr/lib/
 drwxr-xr-x  0 0      0           0 Jan  1  2000 ./usr/lib/debug/
 drwxr-xr-x  0 0      0           0 Jan  1  2023 ./usr/lib/debug/.build-id/
-drwxr-xr-x  0 0      0           0 Jan  1  2023 ./usr/lib/debug/.build-id/bf/
--rwxr-xr-x  0 0      0        9032 Jan  1  2023 ./usr/lib/debug/.build-id/bf/323b22211dd8a6071c972a3b8d16c4527de815.debug
+drwxr-xr-x  0 0      0           0 Jan  1  2023 ./usr/lib/debug/.build-id/b5/
+-rwxr-xr-x  0 0      0        9168 Jan  1  2023 ./usr/lib/debug/.build-id/b5/db81b17bf60e08bbf14f5364c2136aeee439ed.debug

@@ -34,19 +34,22 @@ directory(
 directory(
     name = "builtin_headers",
     srcs = glob([
-        "lib/gcc/x86_64-linux/12.5.0/include/**",
+        "lib/gcc/{target_arch}-linux/{version}/include/**",
     ]),
 )
 
 # Various supporting files needed to run the linker.
 filegroup(
     name = "linker_builtins",
-    data = glob([
-        "bin/*ld*",
-        "lib/**/*.a",
-        "lib/**/*.so*",
-        "lib/**/*.o",
-    ]),
+    data = glob(
+        [
+            "bin/*ld*",
+            "lib/**/*.a",
+            "lib/**/*.so*",
+            "lib/**/*.o",
+        ],
+        allow_empty = True,
+    ),
 )
 
 # Some toolchain distributions use busybox-style handling of tools, so things
@@ -55,7 +58,8 @@ filegroup(
 # binary doesn't exist.
 filegroup(
     name = "multicall_support_files",
-    srcs = glob([
-        "libexec/**/*",
-    ]),
+    srcs = glob(
+        ["libexec/**/*"],
+        allow_empty = True,
+    ),
 )

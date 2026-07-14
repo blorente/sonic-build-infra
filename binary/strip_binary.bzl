@@ -3,10 +3,13 @@
 Behaviour mirrors Debian's dh_strip. It operates on ELFs directly via binutils objcopy.
 """
 
+load("//toolchains/binutils:binutils_toolchain.bzl", "BINUTILS_TOOLCHAIN_TYPE")
 load(":debug_symbols.bzl", "DebugSymbolsInfo")
 load(":keep_debug_info.bzl", "keep_debug_info")
 
 def _strip_binary_rule_impl(ctx):
+    binutils = ctx.toolchains[BINUTILS_TOOLCHAIN_TYPE].binutils
+
     src = ctx.file.src
     stripped = ctx.actions.declare_file(ctx.attr.name + ".stripped")
 
@@ -22,8 +25,8 @@ def _strip_binary_rule_impl(ctx):
     args.add(src)
     args.add(stripped)
     args.add(debug.path)
-    args.add(ctx.executable._objcopy)
-    args.add(ctx.executable._readelf)
+    args.add(binutils.objcopy.executable)
+    args.add(binutils.readelf.executable)
 
     ctx.actions.run(
         executable = ctx.file._strip_tool,
@@ -31,8 +34,8 @@ def _strip_binary_rule_impl(ctx):
         inputs = [src, ctx.file._strip_tool],
         outputs = [stripped, debug],
         tools = [
-            ctx.attr._objcopy[DefaultInfo].files_to_run,
-            ctx.attr._readelf[DefaultInfo].files_to_run,
+            binutils.readelf,
+            binutils.objcopy,
         ],
         mnemonic = "StripBinary",
         progress_message = "Stripping debug info from %{label}",
@@ -65,22 +68,8 @@ _strip_binary_rule = rule(
             cfg = "exec",
             doc = "The script that drives objcopy to split the ELF.",
         ),
-        # These are not read from the toolchain, but rather _from the same place as the toolchain_.
-        # This is because readelf is not exposed by CcToolchainInfo,
-        # so we might as well use the same pattern for objcopy as well.
-        "_objcopy": attr.label(
-            default = "//toolchains/gcc/tools:objcopy",
-            executable = True,
-            cfg = "exec",
-            doc = "objcopy binary. We could get it from the toolchain, but we can't get readelf from the toolchain, so might as well use the same pattern.",
-        ),
-        "_readelf": attr.label(
-            default = "//toolchains/gcc/tools:readelf",
-            executable = True,
-            cfg = "exec",
-            doc = "readelf binary. We can't read it from the toolchain, so we depend on it directly.",
-        ),
     },
+    toolchains = [BINUTILS_TOOLCHAIN_TYPE],
 )
 
 def _strip_binary_impl(name, src, force_debug_build, **kwargs):

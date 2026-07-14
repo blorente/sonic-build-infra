@@ -81,7 +81,6 @@ def _sonic_deploy_tar_impl(name, force_debug_build, binaries = {}, srcs = [], mt
         **rttar_kwargs
     )
 
-
     # Results:
     # - One tar that contains the stripped binaries and exposes `DebugSymbolsInfo`, and
     # - One tar that contains only the debug symbols, for conveninece.
