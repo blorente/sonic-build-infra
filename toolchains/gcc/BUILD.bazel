@@ -13,10 +13,11 @@
 # limitations under the License.
 
 load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
-load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
+load(":defs.bzl", "sonic_host_toolchain")
 
 licenses(["notice"])
 
+# Shared by every toolchain below.
 # https://github.com/bazelbuild/rules_cc/commit/283d572e0e1f4fe864f1f94db2c2cd27cb1dcc6e
 cc_feature(
     name = "external_include_paths",
@@ -25,63 +26,16 @@ cc_feature(
     visibility = ["//visibility:public"],
 )
 
-alias(
-    name = "host_gcc",
-    actual = ":gcc",
-)
-
-cc_toolchain(
-    name = "gcc",
-    args = [
-        "//toolchains/gcc/args:nostdlib",
-        "//toolchains/gcc/args:nostdinc",
-        "//toolchains/gcc/args:nostdinc++",
-        "//toolchains/gcc/args:links",
-        "//toolchains/gcc/args:c_includes",  # C compilation with -isystem for libc
-        "//toolchains/gcc/args:cpp_includes",  # C++ compilation with -idirafter for #include_next
-        "//toolchains/gcc/args:add_build_ids",
-        "//toolchains/args:no_absolute_paths_for_builtins",
-        "//toolchains/args:warnings",
-    ],
-    compiler = "gcc",
-    enabled_features = [
-        ":external_include_paths",
-        "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
-    ],
-    known_features = [
-        ":external_include_paths",
-        "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
-    ],
-    tags = ["manual"],
-    tool_map = "//toolchains/gcc/tools:all_tools",
-)
-
-toolchain(
+sonic_host_toolchain(
     name = "host_x86_64_gcc_toolchain",
-    exec_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-    target_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-    toolchain = ":host_gcc",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    cpu = "x86_64",
+    gcc_repo = "@gcc-linux-target-x86_64-host-x86_64",
     visibility = ["//visibility:public"],
 )
 
-toolchain(
+sonic_host_toolchain(
     name = "host_aarch64_gcc_toolchain",
-    exec_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:aarch64",
-    ],
-    target_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:aarch64",
-    ],
-    toolchain = ":host_gcc",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    cpu = "aarch64",
+    gcc_repo = "@gcc-linux-target-aarch64-host-aarch64",
     visibility = ["//visibility:public"],
 )
