@@ -47,7 +47,6 @@ def resolve_packages(cpu, gcc_repo, args):
         if any([("{%s}" % key) in arg for arg in args])
     }
 
-
 # The args below carry two kinds of placeholder:
 #
 #   {single}     an architecture's name, filled in here by `resolve_args`.
