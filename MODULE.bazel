@@ -64,16 +64,16 @@ apt.sources_list(
     architectures = ARCHITECTURES,
     components = ["main"],
     suites = [
-        "bookworm",
-        "bookworm-updates",
+        "trixie",
+        "trixie-updates",
     ],
-    uris = ["https://snapshot.debian.org/archive/debian/20251001T023456Z"],
+    uris = ["https://snapshot.debian.org/archive/debian/20260727T143429Z"],
 )
 apt.sources_list(
     architectures = ARCHITECTURES,
     components = ["main"],
-    suites = ["bookworm-security"],
-    uris = ["https://snapshot.debian.org/archive/debian-security/20251001T023456Z"],
+    suites = ["trixie-security"],
+    uris = ["https://snapshot.debian.org/archive/debian-security/20260726T121236Z"],
 )
 
 # The cc toolchains' sysroot: libc, libstdc++ and kernel headers.
@@ -88,13 +88,13 @@ apt.install(
         "linux-libc-dev",
     ],
     suites = [
-        "bookworm",
-        "bookworm-updates",
-        "bookworm-security",
+        "trixie",
+        "trixie-updates",
+        "trixie-security",
     ],
 )
 apt.install(
-    dependency_set = "bookworm",
+    dependency_set = "trixie",
     packages = [
         # do not sort
         # debug utilities
@@ -106,29 +106,30 @@ apt.install(
         "sshpass",
 
         # for sonic-swss-common
+        # trixie ships libyang 3, so the -dev package lost its soversion suffix.
         "nlohmann-json3-dev",
         "libhiredis-dev",
         "libboost-dev",
         "libboost-serialization-dev",
         "uuid-dev",
         "libzmq3-dev",
-        "libyang2-dev",
+        "libyang-dev",
         "swig",
         "python3-dev",
 
         # for docker-sysmgr
         "libdbus-1-3",
         "libdbus-c++-1-0v5",
-        "libprotobuf32",
+        "libprotobuf32t64",
 
         # for sonic-sysmgr
         "libdbus-c++-bin",
         "libdbus-c++-dev",
     ],
     suites = [
-        "bookworm",
-        "bookworm-updates",
-        "bookworm-security",
+        "trixie",
+        "trixie-updates",
+        "trixie-security",
     ],
 )
 use_repo(
@@ -138,8 +139,8 @@ use_repo(
     #
     # Dependents can use it by importing `sonic-build-infra` and loading it:
     #     apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
-    #     use_repo(apt, "bookworm")
-    "bookworm",
+    #     use_repo(apt, "trixie")
+    "trixie",
 
     # The cc toolchains' sysroot, resolved per architecture.
     "sysroot",
@@ -147,13 +148,12 @@ use_repo(
 
 # Raw apt package repos the cc toolchains reach into (see use_repo below).
 SYSROOT_PACKAGE_REPO_TEMPLATES = [
-    "bookworm-security_linux-libc-dev-{arch}_6.1.153-1",
-    "bookworm_libc6-{arch}_2.36-9-deb12u13",
-    "bookworm_libc6-dev-{arch}_2.36-9-deb12u13",
-    "bookworm_libgcc-12-dev-{arch}_12.2.0-14-deb12u1",
-    "bookworm_libgcc-s1-{arch}_12.2.0-14-deb12u1",
-    "bookworm_libstdc---12-dev-{arch}_12.2.0-14-deb12u1",
-    "bookworm_libstdc--6-{arch}_12.2.0-14-deb12u1",
+    "trixie_libc6-{arch}_2.41-12-deb13u3",
+    "trixie_libc6-dev-{arch}_2.41-12-deb13u3",
+    "trixie_libgcc-12-dev-{arch}_12.4.0-5",
+    "trixie_libgcc-s1-{arch}_14.2.0-19",
+    "trixie_libstdc---12-dev-{arch}_12.4.0-5",
+    "trixie_libstdc--6-{arch}_14.2.0-19",
 ]
 
 SYSROOT_PACKAGE_REPOS = [
@@ -161,6 +161,10 @@ SYSROOT_PACKAGE_REPOS = [
     for template in SYSROOT_PACKAGE_REPO_TEMPLATES
     for arch in ARCHITECTURES
 ]
+
+# Unlike bookworm, trixie ships linux-libc-dev as Architecture: all, so it is a
+# single repo rather than one per architecture.
+use_repo(apt, "trixie-security_linux-libc-dev-all_6.12.96-1")
 
 [
     use_repo(apt, repo)

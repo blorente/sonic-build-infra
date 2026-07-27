@@ -10,12 +10,12 @@ load("//toolchains/gcc:gcc.bzl", "DEBIAN_GCC_MAJOR", "GCC_METADATA", "GCC_VERSIO
 
 # Every package the toolchains reach into, keyed by the name the args use.
 _PACKAGES = {
-    "libc6": "@bookworm_libc6-{deb}_2.36-9-deb12u13//:directory",
-    "libc6-dev": "@bookworm_libc6-dev-{deb}_2.36-9-deb12u13//:directory",
-    "libgcc-s1": "@bookworm_libgcc-s1-{deb}_12.2.0-14-deb12u1//:directory",
-    "libgcc-dev": "@bookworm_libgcc-12-dev-{deb}_12.2.0-14-deb12u1//:directory",
-    "libstdcxx-dev": "@bookworm_libstdc---12-dev-{deb}_12.2.0-14-deb12u1//:directory",
-    "linux-libc-dev": "@bookworm-security_linux-libc-dev-{deb}_6.1.153-1//:directory",
+    "linux-libc-dev": "@trixie-security_linux-libc-dev-all_6.12.96-1//:directory",
+    "libc6": "@trixie_libc6-{deb}_2.41-12-deb13u3//:directory",
+    "libc6-dev": "@trixie_libc6-dev-{deb}_2.41-12-deb13u3//:directory",
+    "libgcc-s1": "@trixie_libgcc-s1-{deb}_14.2.0-19//:directory",
+    "libgcc-dev": "@trixie_libgcc-12-dev-{deb}_12.4.0-5//:directory",
+    "libstdcxx-dev": "@trixie_libstdc---12-dev-{deb}_12.4.0-5//:directory",
 }
 
 def resolve_args(cpu, args):
