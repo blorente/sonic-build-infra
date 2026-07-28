@@ -10,7 +10,7 @@ load("//toolchains/gcc:gcc.bzl", "DEBIAN_GCC_MAJOR", "GCC_METADATA", "GCC_VERSIO
 
 # Every package the toolchains reach into, keyed by the name the args use.
 _PACKAGES = {
-    "linux-libc-dev": "@trixie-security_linux-libc-dev-all_6.12.96-1//:directory",
+    "linux-libc-dev": "@trixie-security_linux-libc-dev-{deb}_6.12.96-1//:directory",
     "libc6": "@trixie_libc6-{deb}_2.41-12-deb13u3//:directory",
     "libc6-dev": "@trixie_libc6-dev-{deb}_2.41-12-deb13u3//:directory",
     "libgcc-s1": "@trixie_libgcc-s1-{deb}_14.2.0-19//:directory",

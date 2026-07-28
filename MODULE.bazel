@@ -26,8 +26,7 @@ local_path_override(
 
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
 
-# TODO(bazel-ready): Upgrade rules_distroless when #183 merges
-bazel_dep(name = "rules_distroless", version = "0.0.0.commit-ebfd74a2e07b83235e064bb63ace98a1a5223e02")
+bazel_dep(name = "rules_distroless", version = "0.0.0.commit-afa995e4a5bad8d3ab3a080046f6eeaf6f893a65")
 
 fetch_gcc = use_repo_rule("//toolchains/gcc:gcc.bzl", "fetch_gcc")
 
@@ -148,6 +147,7 @@ use_repo(
 
 # Raw apt package repos the cc toolchains reach into (see use_repo below).
 SYSROOT_PACKAGE_REPO_TEMPLATES = [
+    "trixie-security_linux-libc-dev-{arch}_6.12.96-1",
     "trixie_libc6-{arch}_2.41-12-deb13u3",
     "trixie_libc6-dev-{arch}_2.41-12-deb13u3",
     "trixie_libgcc-12-dev-{arch}_12.4.0-5",
@@ -161,10 +161,6 @@ SYSROOT_PACKAGE_REPOS = [
     for template in SYSROOT_PACKAGE_REPO_TEMPLATES
     for arch in ARCHITECTURES
 ]
-
-# Unlike bookworm, trixie ships linux-libc-dev as Architecture: all, so it is a
-# single repo rather than one per architecture.
-use_repo(apt, "trixie-security_linux-libc-dev-all_6.12.96-1")
 
 [
     use_repo(apt, repo)
