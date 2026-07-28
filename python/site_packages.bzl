@@ -1,3 +1,5 @@
+"""Extensions to tar.bzl to handle site_packages."""
+
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_python//python:defs.bzl", "PyInfo")
 load("@tar.bzl", "tar", _mutate = "mutate")
@@ -19,8 +21,8 @@ export_py_info = rule(
 )
 
 def site_packages(name, srcs, mutate = None, **kwargs):
-    """
-    Conveninece macro to create a tar with a bunch of python dependencies.
+    """Conveninece macro to create a tar with a bunch of python dependencies.
+
     srcs must export the required files with `PyInfo`.
 
     Args:

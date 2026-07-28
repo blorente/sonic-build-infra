@@ -1,3 +1,5 @@
+"""Toolchain exposing useful binutils binaries, such as readelf, that are not exposed by the CC toolchain."""
+
 BINUTILS_TOOLCHAIN_TYPE = "//toolchains/binutils:toolchain_type"
 
 BinutilsInfo = provider(

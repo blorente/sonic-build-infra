@@ -1,16 +1,10 @@
+"""Rules to run SWIG generation."""
+
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cpp_toolchain", "use_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 def _swig_gen_cc_impl(ctx):
-    cc_toolchain = find_cpp_toolchain(ctx)
-    feature_configuration = cc_common.configure_features(
-        ctx = ctx,
-        cc_toolchain = cc_toolchain,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
-
     # Collect all include paths from compilation context of deps and hdrs
     compilation_contexts = []
     for dep in ctx.attr.deps:
@@ -61,7 +55,6 @@ def _swig_gen_cc_impl(ctx):
     args.add("-DSWIGWORDSIZE64")  # Important for 64-bit
 
     # Get include flags (-Ipath)
-    include_args = []
     for include in compilation_context.includes.to_list():
         args.add("-I" + include)
     for external_include in compilation_context.external_includes.to_list():

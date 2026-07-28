@@ -1,3 +1,8 @@
+"""Repository rule that extracts a tar.
+
+Useful for inspecting the contents of `.deb` archives at repository time.
+"""
+
 def _extract_tar_impl(ctx):
     tar_file = ctx.path(ctx.attr.archive)
 

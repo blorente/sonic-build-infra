@@ -1,3 +1,5 @@
+"""Useful constants to represent concepts relevant across all of SONiC"""
+
 # All possible values for SONiC ASIC vendors,
 # from @sonic-buildimage//README.md
 ASIC_MANUFACTURERS = [

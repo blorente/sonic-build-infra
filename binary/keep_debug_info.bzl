@@ -3,7 +3,7 @@
 This sets `--strip` to `never` and manually adding the compiler and linker flags needed to produce the info.
 """
 
-def _keep_debug_info_transition_impl(settings, attr):
+def _keep_debug_info_transition_impl(settings, _attr):
     return {
         "//command_line_option:strip": "never",
         "//command_line_option:copt": settings["//command_line_option:copt"] + ["-g"],

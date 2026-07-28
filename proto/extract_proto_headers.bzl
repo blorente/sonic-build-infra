@@ -1,3 +1,5 @@
+"""A rule that extracts all the pb.h headers from a CcInfo and puts them in an appropriately-named directory."""
+
 load("@bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory_bin_action")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
@@ -10,7 +12,6 @@ def _extract_proto_headers(ctx):
     copy_bin = ctx.toolchains["@bazel_lib//lib:copy_to_directory_toolchain_type"].copy_to_directory_info.bin
 
     all_headers = ctx.attr.cc_proto_target[CcInfo].compilation_context.direct_public_headers
-    external_includes = ctx.attr.cc_proto_target[CcInfo].compilation_context.external_includes
     headers_to_move = [
         f
         for f in all_headers

@@ -1,3 +1,8 @@
+"""Create a repository-level alias.
+
+TODO(bazel-ready): Figure out if we can remove this.
+"""
+
 def _alias_impl(rctx):
     rctx.file("BUILD.bazel", "".join([
         """
