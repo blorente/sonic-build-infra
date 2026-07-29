@@ -26,7 +26,7 @@ local_path_override(
 
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
 
-bazel_dep(name = "rules_distroless", version = "0.0.0.commit-afa995e4a5bad8d3ab3a080046f6eeaf6f893a65")
+bazel_dep(name = "rules_distroless", version = "0.0.0.commit-01bb79d7eef4eb3ce9511d3dfaf0ab386bd8d12d")
 
 fetch_gcc = use_repo_rule("//toolchains/gcc:gcc.bzl", "fetch_gcc")
 
