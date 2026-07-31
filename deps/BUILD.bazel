@@ -1,0 +1,6 @@
+# Marks this directory as a package so `uv.project()` can reference the files below.
+
+exports_files([
+    "pyproject.toml",
+    "uv.lock",
+])
