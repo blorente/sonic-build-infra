@@ -19,11 +19,13 @@ GCC_METADATA = {
         gcc = "x86_64-linux",
         deb = "amd64",
         multiarch = "x86_64-linux-gnu",
+        dynamic_linker = "lib64/ld-linux-x86-64.so.2",
     ),
     "aarch64": struct(
         gcc = "aarch64-linux",
         deb = "arm64",
         multiarch = "aarch64-linux-gnu",
+        dynamic_linker = "lib/ld-linux-aarch64.so.1",
     ),
 }
 

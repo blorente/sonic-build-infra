@@ -27,6 +27,7 @@ def resolve_args(cpu, args):
             gcc_major = DEBIAN_GCC_MAJOR,
             gcc_version = GCC_VERSION,
             multiarch = arch.multiarch,
+            dynamic_linker = arch.dynamic_linker,
         )
         for arg in args
     ]
@@ -132,6 +133,20 @@ _CPP_INCLUDES_ARGS = [
 ]
 
 _LINK_ARGS = [
+    # Debian ships libc.so/libm.so as GNU ld scripts (GROUP/AS_NEEDED) that name
+    # the real .so files by absolute host path, e.g. /lib/x86_64-linux-gnu/libc.so.6.
+    #
+    # Usually, this would be handled by `rules_distroless`.
+    #
+    # However, we don't depend on the rules_distroless-generated targets to build the sysroot,
+    # and instead we depend on `//:directory` targets.
+    # Therefore, we lose out on the automated fixes, and must add them by hand.
+    "-Wl,--remap-inputs=/lib/{multiarch}/libc.so.6={{libc6}}/usr/lib/{multiarch}/libc.so.6",
+    "-Wl,--remap-inputs=/lib/{multiarch}/libm.so.6={{libc6}}/usr/lib/{multiarch}/libm.so.6",
+    "-Wl,--remap-inputs=/lib/{multiarch}/libmvec.so.1={{libc6}}/usr/lib/{multiarch}/libmvec.so.1",
+    "-Wl,--remap-inputs=/{dynamic_linker}={{libc6}}/usr/{dynamic_linker}",
+    "-Wl,--remap-inputs=/usr/lib/{multiarch}/libc_nonshared.a={{libc6-dev}}/usr/lib/{multiarch}/libc_nonshared.a",
+
     "-B",
     "{{libc6}}/lib/{multiarch}",
     "-Wl,-rpath=/lib/{multiarch}",
