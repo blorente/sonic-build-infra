@@ -146,7 +146,6 @@ _LINK_ARGS = [
     "-Wl,--remap-inputs=/lib/{multiarch}/libmvec.so.1={{libc6}}/usr/lib/{multiarch}/libmvec.so.1",
     "-Wl,--remap-inputs=/{dynamic_linker}={{libc6}}/usr/{dynamic_linker}",
     "-Wl,--remap-inputs=/usr/lib/{multiarch}/libc_nonshared.a={{libc6-dev}}/usr/lib/{multiarch}/libc_nonshared.a",
-
     "-B",
     "{{libc6}}/lib/{multiarch}",
     "-Wl,-rpath=/lib/{multiarch}",
