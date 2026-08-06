@@ -38,7 +38,7 @@ def bin(gcc_repo, cpu, tool):
         tool = tool,
     )
 
-def sonic_host_toolchain(name, cpu, gcc_repo, visibility = None):
+def sonic_host_toolchain(name, cpu, gcc_repo, target_platform, visibility = None):
     """Declares a GCC toolchain where `exec == target == $cpu`.
 
     This is a legacy macro because cc_toolchain creates
@@ -51,6 +51,8 @@ def sonic_host_toolchain(name, cpu, gcc_repo, visibility = None):
               e.g. `x86_64`.
         gcc_repo: The GCC distribution this toolchain is built from,
                   e.g. `@gcc-linux-target-x86_64-host-x86_64`. Every tool is taken from here.
+        target_platform: The constraint_value() target specifying the environment we'll deploy to.
+                         e.g. //platforms:trixie.
         visibility: Visibility of the generated `toolchain()` target.
     """
 
@@ -164,7 +166,7 @@ def sonic_host_toolchain(name, cpu, gcc_repo, visibility = None):
     native.toolchain(
         name = name,
         exec_compatible_with = constraints,
-        target_compatible_with = constraints,
+        target_compatible_with = constraints + [target_platform],
         toolchain = name + "_cc_toolchain",
         toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
         visibility = visibility,

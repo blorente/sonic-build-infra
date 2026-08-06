@@ -30,6 +30,7 @@ sonic_host_toolchain(
     name = "host_x86_64_gcc_toolchain",
     cpu = "x86_64",
     gcc_repo = "@gcc-linux-target-x86_64-host-x86_64",
+    target_platform = "//platforms:trixie",
     visibility = ["//visibility:public"],
 )
 
@@ -37,5 +38,6 @@ sonic_host_toolchain(
     name = "host_aarch64_gcc_toolchain",
     cpu = "aarch64",
     gcc_repo = "@gcc-linux-target-aarch64-host-aarch64",
+    target_platform = "//platforms:trixie",
     visibility = ["//visibility:public"],
 )

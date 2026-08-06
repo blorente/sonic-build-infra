@@ -1,0 +1,36 @@
+# Marks a target platform whose binaries are linked against our hermetic
+# Debian trixie sysroot (glibc 2.41 headers/libs).
+#
+# We don't want to use the hermetic toolchain for all tools.
+# For instance, tools that are meant to run during build time (e.g. `gawk`)
+# should be compiled with the host toolchain of the machine they're running on (e.g. Ubuntu on the CI machine).
+#
+# By creating this custom platform, we can narrow the toolchain to only be used to build
+# binaries that we intend to deploy to trixie.
+constraint_setting(name = "trixie_libc_sysroot")
+
+constraint_value(
+    name = "trixie",
+    constraint_setting = ":trixie_libc_sysroot",
+    visibility = ["//visibility:public"],
+)
+
+platform(
+    name = "x86_64_trixie",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+        ":trixie",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+platform(
+    name = "aarch64_trixie",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+        ":trixie",
+    ],
+    visibility = ["//visibility:public"],
+)
