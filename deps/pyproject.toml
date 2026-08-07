@@ -3,7 +3,7 @@ name = "sonic-build-infra-python-deps"
 version = "1.0.0"
 requires-python = ">= 3.11"
 dependencies = [
-    # Only here as an example of how to use python libraries.
-    # Please remove when the first python component is migrated to Bazel.
+    # For utility scripts in sonic-buildimage
     "click == 8.4.2",
+    "requests == 2.34.2",
 ]
