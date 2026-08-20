@@ -1,12 +1,12 @@
 """Fetches a GCC distribution and overlays BUILD files on top
 """
 
-GCC_VERSION = "12.5.0"
+GCC_VERSION = "14.2.0"
 
 # The GCC Debian built its libraries with, which may or may not be the same.
-# Its paths only carry the major, e.g. /usr/lib/gcc/x86_64-linux-gnu/12.
+# Its paths only carry the major, e.g. /usr/lib/gcc/x86_64-linux-gnu/14.
 # We need this as long as we fetch the sysroot from Debian archives.
-DEBIAN_GCC_MAJOR = "12"
+DEBIAN_GCC_MAJOR = "14"
 
 # The CPU goes by different names in different places.
 # This dict captures those differences.

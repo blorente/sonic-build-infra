@@ -14,8 +14,8 @@ _PACKAGES = {
     "libc6": "@trixie_libc6-{deb}_2.41-12-deb13u3//:directory",
     "libc6-dev": "@trixie_libc6-dev-{deb}_2.41-12-deb13u3//:directory",
     "libgcc-s1": "@trixie_libgcc-s1-{deb}_14.2.0-19//:directory",
-    "libgcc-dev": "@trixie_libgcc-12-dev-{deb}_12.4.0-5//:directory",
-    "libstdcxx-dev": "@trixie_libstdc---12-dev-{deb}_12.4.0-5//:directory",
+    "libgcc-dev": "@trixie_libgcc-14-dev-{deb}_14.2.0-19//:directory",
+    "libstdcxx-dev": "@trixie_libstdc---14-dev-{deb}_14.2.0-19//:directory",
 }
 
 def resolve_args(cpu, args):
