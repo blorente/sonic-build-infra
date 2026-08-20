@@ -33,18 +33,18 @@ fetch_gcc = use_repo_rule("//toolchains/gcc:gcc.bzl", "fetch_gcc")
 
 fetch_gcc(
     name = "gcc-linux-target-x86_64-host-x86_64",
-    integrity = "sha256-OMlAdKIcGumB+5E4tGU9uMPlsObmJ7nv8YVg5ZjgGbQ=",
+    integrity = "sha256-QcX9m+ftDHwwDe4YQ0lxtnq0VkO52B8xlgkk3HOulDc=",
     target_arch = "x86_64",
-    urls = ["https://github.com/blorente/gcc-builds/releases/download/13-07-2026/gcc-toolchain-12.5.0-x86_64.tar.xz"],
-    version = "12.5.0",
+    urls = ["https://github.com/blorente/gcc-builds/releases/download/20-08-2026/gcc-toolchain-14.2.0-x86_64.tar.xz"],
+    version = "14.2.0",
 )
 
 fetch_gcc(
     name = "gcc-linux-target-aarch64-host-aarch64",
-    integrity = "sha256-uDAQn8vGob0lhpFI8MNHZi6hHY1HvDxs+4+ZKLSu67s=",
+    integrity = "sha256-mF+uzgBydl6AfMYmQTzpbQWh53gaqrluJaGtfznxRZ0=",
     target_arch = "aarch64",
-    urls = ["https://github.com/blorente/gcc-builds/releases/download/13-07-2026/gcc-toolchain-12.5.0-aarch64-host-aarch64.tar.xz"],
-    version = "12.5.0",
+    urls = ["https://github.com/blorente/gcc-builds/releases/download/20-08-2026/gcc-toolchain-14.2.0-aarch64-host-aarch64.tar.xz"],
+    version = "14.2.0",
 )
 
 register_toolchains(
@@ -83,8 +83,8 @@ apt.install(
     dependency_set = "sysroot",
     packages = [
         "libc6-dev",
-        "libgcc-12-dev",
-        "libstdc++-12-dev",
+        "libgcc-14-dev",
+        "libstdc++-14-dev",
         "linux-libc-dev",
     ],
     suites = [
@@ -151,9 +151,9 @@ SYSROOT_PACKAGE_REPO_TEMPLATES = [
     "trixie-security_linux-libc-dev-{arch}_6.12.96-1",
     "trixie_libc6-{arch}_2.41-12-deb13u3",
     "trixie_libc6-dev-{arch}_2.41-12-deb13u3",
-    "trixie_libgcc-12-dev-{arch}_12.4.0-5",
+    "trixie_libgcc-14-dev-{arch}_14.2.0-19",
     "trixie_libgcc-s1-{arch}_14.2.0-19",
-    "trixie_libstdc---12-dev-{arch}_12.4.0-5",
+    "trixie_libstdc---14-dev-{arch}_14.2.0-19",
     "trixie_libstdc--6-{arch}_14.2.0-19",
 ]
 
