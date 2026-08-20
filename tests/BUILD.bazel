@@ -105,6 +105,20 @@ assert_tar(
     tar = ":inconsistent_sizes_tar_small",
 )
 
+#############################
+#   cc toolchain tests      #
+#############################
+
+cc_binary(
+    name = "hello_cpp",
+    srcs = ["//tests/testdata:hello.cc"],
+)
+
+build_test(
+    name = "hello_cpp_build_test",
+    targets = [":hello_cpp"],
+)
+
 #########################
 #   strip_binary tests  #
 #########################

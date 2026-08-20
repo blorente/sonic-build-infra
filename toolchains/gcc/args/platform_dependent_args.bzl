@@ -6,38 +6,50 @@ so we centralize that post-processing here.
 The only struct we really need is `PLATFORM_DEPENDENT_ARGS`
 """
 
-load("//toolchains/gcc:gcc.bzl", "DEBIAN_GCC_MAJOR", "GCC_METADATA", "GCC_VERSION")
+load("//toolchains/gcc:gcc.bzl", "GCC_METADATA")
 
-# Every package the toolchains reach into, keyed by the name the args use.
-_PACKAGES = {
-    "linux-libc-dev": "@trixie-security_linux-libc-dev-{deb}_6.12.96-1//:directory",
-    "libc6": "@trixie_libc6-{deb}_2.41-12-deb13u3//:directory",
-    "libc6-dev": "@trixie_libc6-dev-{deb}_2.41-12-deb13u3//:directory",
-    "libgcc-s1": "@trixie_libgcc-s1-{deb}_14.2.0-19//:directory",
-    "libgcc-dev": "@trixie_libgcc-14-dev-{deb}_14.2.0-19//:directory",
-    "libstdcxx-dev": "@trixie_libstdc---14-dev-{deb}_14.2.0-19//:directory",
-}
+def resolve_args(cpu, version, gcc_major, args):
+    """Fills in the toolchain's names, leaving the `{package}`s for cc_args.
 
-def resolve_args(cpu, args):
-    """Fills in the architecture's names, leaving the `{package}`s for cc_args."""
+    Args:
+        cpu: the `@platforms//cpu` value, e.g. `x86_64`.
+        version: the hermetic GCC version, e.g. `14.2.0`.
+        gcc_major: the major version of the GCC that built the sysroot, e.g.
+                   `14`. Debian's paths only carry the major.
+        args: the arg templates, from PLATFORM_DEPENDENT_ARGS below.
+
+    Returns:
+        The args with every `{single}` placeholder filled in.
+    """
     arch = GCC_METADATA[cpu]
     return [
         arg.format(
             gcc = arch.gcc,
-            gcc_major = DEBIAN_GCC_MAJOR,
-            gcc_version = GCC_VERSION,
+            gcc_major = gcc_major,
+            gcc_version = version,
             multiarch = arch.multiarch,
             dynamic_linker = arch.dynamic_linker,
         )
         for arg in args
     ]
 
-def resolve_packages(cpu, gcc_repo, args):
-    """The packages `args` references, keyed by the name they reference them by."""
-    available = {
-        key: label.format(deb = GCC_METADATA[cpu].deb)
-        for key, label in _PACKAGES.items()
-    }
+def resolve_packages(sysroot, gcc_repo, args):
+    """The packages `args` references, keyed by the name they reference them by.
+
+    Args:
+        sysroot: logical package name -> the label of the directory holding it,
+                 from the `gcc.debian_toolchain()` tag that declared this
+                 toolchain.
+        gcc_repo: the GCC distribution repo, for the one directory that does
+                  not come from apt.
+        args: the resolved args, which name the packages they need.
+
+    Returns:
+        The subset of the packages `args` actually references.
+    """
+
+    # Every package this toolchain could reach into.
+    available = dict(sysroot)
 
     # The one directory that comes from the GCC distribution rather than from apt.
     available["gcc-builtin"] = gcc_repo + "//:builtin_headers"

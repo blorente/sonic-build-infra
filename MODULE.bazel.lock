@@ -370,6 +370,117 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "//toolchains/gcc:extensions.bzl%gcc": {
+      "general": {
+        "bzlTransitiveDigest": "de71PrdyiLRiX2ATXcz3VBMQ8l+YRYxwnlWpTWPvX7Q=",
+        "usagesDigest": "C80y35eue8N+3RzacIYoPpvXMameaF8rT28vcL2mGMA=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "gcc-14.2.0-linux-target-x86_64-host-x86_64": {
+            "repoRuleId": "@@//toolchains/gcc:gcc.bzl%fetch_gcc",
+            "attributes": {
+              "integrity": "sha256-QcX9m+ftDHwwDe4YQ0lxtnq0VkO52B8xlgkk3HOulDc=",
+              "target_arch": "x86_64",
+              "urls": [
+                "https://github.com/blorente/gcc-builds/releases/download/20-08-2026/gcc-toolchain-14.2.0-x86_64.tar.xz"
+              ],
+              "version": "14.2.0"
+            }
+          },
+          "gcc-14.2.0-linux-target-aarch64-host-aarch64": {
+            "repoRuleId": "@@//toolchains/gcc:gcc.bzl%fetch_gcc",
+            "attributes": {
+              "integrity": "sha256-mF+uzgBydl6AfMYmQTzpbQWh53gaqrluJaGtfznxRZ0=",
+              "target_arch": "aarch64",
+              "urls": [
+                "https://github.com/blorente/gcc-builds/releases/download/20-08-2026/gcc-toolchain-14.2.0-aarch64-host-aarch64.tar.xz"
+              ],
+              "version": "14.2.0"
+            }
+          },
+          "gcc_toolchains": {
+            "repoRuleId": "@@//toolchains/gcc:extensions.bzl%_gcc_toolchains",
+            "attributes": {
+              "toolchains": "[{\"cpu\":\"x86_64\",\"debian_gcc_major\":\"14\",\"sysroot\":{\"libc6\":\"@@rules_distroless++apt+trixie_libc6-amd64_2.41-12-deb13u3//:directory\",\"libc6-dev\":\"@@rules_distroless++apt+trixie_libc6-dev-amd64_2.41-12-deb13u3//:directory\",\"libgcc-dev\":\"@@rules_distroless++apt+trixie_libgcc-14-dev-amd64_14.2.0-19//:directory\",\"libgcc-s1\":\"@@rules_distroless++apt+trixie_libgcc-s1-amd64_14.2.0-19//:directory\",\"libstdcxx\":\"@@rules_distroless++apt+trixie_libstdc--6-amd64_14.2.0-19//:directory\",\"libstdcxx-dev\":\"@@rules_distroless++apt+trixie_libstdc---14-dev-amd64_14.2.0-19//:directory\",\"linux-libc-dev\":\"@@rules_distroless++apt+trixie-security_linux-libc-dev-amd64_6.12.96-1//:directory\"},\"target_platform\":\"@@//platforms:trixie\",\"version\":\"14.2.0\"},{\"cpu\":\"aarch64\",\"debian_gcc_major\":\"14\",\"sysroot\":{\"libc6\":\"@@rules_distroless++apt+trixie_libc6-arm64_2.41-12-deb13u3//:directory\",\"libc6-dev\":\"@@rules_distroless++apt+trixie_libc6-dev-arm64_2.41-12-deb13u3//:directory\",\"libgcc-dev\":\"@@rules_distroless++apt+trixie_libgcc-14-dev-arm64_14.2.0-19//:directory\",\"libgcc-s1\":\"@@rules_distroless++apt+trixie_libgcc-s1-arm64_14.2.0-19//:directory\",\"libstdcxx\":\"@@rules_distroless++apt+trixie_libstdc--6-arm64_14.2.0-19//:directory\",\"libstdcxx-dev\":\"@@rules_distroless++apt+trixie_libstdc---14-dev-arm64_14.2.0-19//:directory\",\"linux-libc-dev\":\"@@rules_distroless++apt+trixie-security_linux-libc-dev-arm64_6.12.96-1//:directory\"},\"target_platform\":\"@@//platforms:trixie\",\"version\":\"14.2.0\"}]"
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "",
+            "trixie-security_linux-libc-dev-amd64_6.12.96-1",
+            "rules_distroless++apt+trixie-security_linux-libc-dev-amd64_6.12.96-1"
+          ],
+          [
+            "",
+            "trixie-security_linux-libc-dev-arm64_6.12.96-1",
+            "rules_distroless++apt+trixie-security_linux-libc-dev-arm64_6.12.96-1"
+          ],
+          [
+            "",
+            "trixie_libc6-amd64_2.41-12-deb13u3",
+            "rules_distroless++apt+trixie_libc6-amd64_2.41-12-deb13u3"
+          ],
+          [
+            "",
+            "trixie_libc6-arm64_2.41-12-deb13u3",
+            "rules_distroless++apt+trixie_libc6-arm64_2.41-12-deb13u3"
+          ],
+          [
+            "",
+            "trixie_libc6-dev-amd64_2.41-12-deb13u3",
+            "rules_distroless++apt+trixie_libc6-dev-amd64_2.41-12-deb13u3"
+          ],
+          [
+            "",
+            "trixie_libc6-dev-arm64_2.41-12-deb13u3",
+            "rules_distroless++apt+trixie_libc6-dev-arm64_2.41-12-deb13u3"
+          ],
+          [
+            "",
+            "trixie_libgcc-14-dev-amd64_14.2.0-19",
+            "rules_distroless++apt+trixie_libgcc-14-dev-amd64_14.2.0-19"
+          ],
+          [
+            "",
+            "trixie_libgcc-14-dev-arm64_14.2.0-19",
+            "rules_distroless++apt+trixie_libgcc-14-dev-arm64_14.2.0-19"
+          ],
+          [
+            "",
+            "trixie_libgcc-s1-amd64_14.2.0-19",
+            "rules_distroless++apt+trixie_libgcc-s1-amd64_14.2.0-19"
+          ],
+          [
+            "",
+            "trixie_libgcc-s1-arm64_14.2.0-19",
+            "rules_distroless++apt+trixie_libgcc-s1-arm64_14.2.0-19"
+          ],
+          [
+            "",
+            "trixie_libstdc---14-dev-amd64_14.2.0-19",
+            "rules_distroless++apt+trixie_libstdc---14-dev-amd64_14.2.0-19"
+          ],
+          [
+            "",
+            "trixie_libstdc---14-dev-arm64_14.2.0-19",
+            "rules_distroless++apt+trixie_libstdc---14-dev-arm64_14.2.0-19"
+          ],
+          [
+            "",
+            "trixie_libstdc--6-amd64_14.2.0-19",
+            "rules_distroless++apt+trixie_libstdc--6-amd64_14.2.0-19"
+          ],
+          [
+            "",
+            "trixie_libstdc--6-arm64_14.2.0-19",
+            "rules_distroless++apt+trixie_libstdc--6-arm64_14.2.0-19"
+          ]
+        ]
+      }
+    },
     "@@aspect_rules_py+//py:extensions.bzl%py_tools": {
       "general": {
         "bzlTransitiveDigest": "kLKy8bFbyWBUaZWxV0FpYlPNF+jpzpsjrZXJ6ZPSptQ=",

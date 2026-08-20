@@ -1,6 +1,6 @@
 """Toolchain exposing useful binutils binaries, such as readelf, that are not exposed by the CC toolchain."""
 
-BINUTILS_TOOLCHAIN_TYPE = "//toolchains/binutils:toolchain_type"
+BINUTILS_TOOLCHAIN_TYPE = Label("//toolchains/binutils:toolchain_type")
 
 BinutilsInfo = provider(
     doc = "Paths to different binutils, such as readelf, for the execution platform. This exists because cc toolchains do not forward certain binutils tools.",
