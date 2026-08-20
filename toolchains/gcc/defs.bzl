@@ -8,7 +8,7 @@ load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
 load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
 load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
-load("//toolchains/gcc:gcc.bzl", "GCC_METADATA")
+load("//toolchains/gcc:gcc.bzl", "GCC_METADATA", "gcc_repo_name")
 load(
     "//toolchains/gcc/args:platform_dependent_args.bzl",
     "PLATFORM_DEPENDENT_ARGS",
@@ -18,28 +18,48 @@ load(
 
 _PLATFORM_DEPENDENT_ARGS = PLATFORM_DEPENDENT_ARGS
 _PLATFORM_INDEPENDENT_ARGS = [
-    "//toolchains/gcc/args:nostdlib",
-    "//toolchains/gcc/args:nostdinc",
-    "//toolchains/gcc/args:nostdinc++",
-    "//toolchains/gcc/args:add_build_ids",
-    "//toolchains/args:no_absolute_paths_for_builtins",
-    "//toolchains/args:warnings",
+    Label("//toolchains/gcc/args:nostdlib"),
+    Label("//toolchains/gcc/args:nostdinc"),
+    Label("//toolchains/gcc/args:nostdinc++"),
+    Label("//toolchains/gcc/args:add_build_ids"),
+    Label("//toolchains/args:no_absolute_paths_for_builtins"),
+    Label("//toolchains/args:warnings"),
 ]
 
 _FEATURES = [
-    "//toolchains/gcc:external_include_paths",
-    "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
+    Label("//toolchains/gcc:external_include_paths"),
+    Label("@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"),
 ]
 
-def bin(gcc_repo, cpu, tool):
-    return "{repo}//:bin/{prefix}-{tool}".format(
-        repo = gcc_repo,
+def bin(cpu, version, tool):
+    """A tool from one GCC distribution, e.g. its `objcopy`.
+
+    Args:
+        cpu: The `@platforms//cpu` the distribution runs on, e.g. `x86_64`.
+        version: The GCC version, e.g. `14.2.0`. With `cpu` it names the
+                 `gcc.debian_toolchain()` tag that fetched the distribution.
+        tool: The unprefixed tool name, e.g. `objcopy`.
+
+    Returns:
+        The label of that tool in the distribution's repo.
+    """
+    return "@{repo}//:bin/{prefix}-{tool}".format(
+        repo = gcc_repo_name(cpu, version),
         prefix = GCC_METADATA[cpu].gcc,
         tool = tool,
     )
 
-def sonic_host_toolchain(name, cpu, gcc_repo, target_platform, visibility = None):
+def sonic_host_toolchain(
+        name,
+        cpu,
+        version,
+        debian_gcc_major,
+        sysroot,
+        target_platform,
+        visibility = None):
     """Declares a GCC toolchain where `exec == target == $cpu`.
+
+    Called from `gcc.debian_toolchain()`.
 
     This is a legacy macro because cc_toolchain creates
     targets that are incompatible with symbolic macros.
@@ -49,15 +69,25 @@ def sonic_host_toolchain(name, cpu, gcc_repo, target_platform, visibility = None
               This is what `register_toolchains` refers to.
         cpu: The `@platforms//cpu` value this toolchain both runs on and targets,
               e.g. `x86_64`.
-        gcc_repo: The GCC distribution this toolchain is built from,
-                  e.g. `@gcc-linux-target-x86_64-host-x86_64`. Every tool is taken from here.
+        version: The GCC version this toolchain compiles with, e.g. `14.2.0`.
+                 Together with `cpu` it names the `gcc.debian_toolchain()` tag
+                 in //:MODULE.bazel this toolchain is built from, and so the
+                 distribution every tool is taken from.
+        debian_gcc_major: Major version of the GCC that built the sysroot, e.g. `14`.
+                          Debian's paths only carry the major.
+        sysroot: Map of package_name -> Label of its //:directory, to build the Debian based sysroot.
         target_platform: The constraint_value() target specifying the environment we'll deploy to.
                          e.g. //platforms:trixie.
         visibility: Visibility of the generated `toolchain()` target.
     """
 
+    # The repo the `gcc` extension fetched this (version, cpu)'s distribution
+    # into. Derived rather than passed in, so it cannot name a different
+    # toolchain than `version` and `cpu` resolve the args from.
+    gcc_repo = "@" + gcc_repo_name(cpu, version)
+
     def _bin(tool):
-        return bin(gcc_repo, cpu, tool)
+        return bin(cpu, version, tool)
 
     # Support files the compiler and linker need alongside the driver.
     native.alias(
@@ -129,8 +159,8 @@ def sonic_host_toolchain(name, cpu, gcc_repo, target_platform, visibility = None
     # The args name the packages they need, and resolve_packages hands cc_args
     # exactly those -- it fails on a package that goes unreferenced.
     for spec in _PLATFORM_DEPENDENT_ARGS:
-        args = resolve_args(cpu, spec.args)
-        packages = resolve_packages(cpu, gcc_repo, args)
+        args = resolve_args(cpu, version, debian_gcc_major, spec.args)
+        packages = resolve_packages(sysroot, gcc_repo, args)
 
         cc_args(
             name = name + spec.suffix,
@@ -159,8 +189,8 @@ def sonic_host_toolchain(name, cpu, gcc_repo, target_platform, visibility = None
     # A host toolchain runs on the same platform it targets, so exec and target
     # take the same constraints.
     constraints = [
-        "@platforms//os:linux",
-        "@platforms//cpu:" + cpu,
+        Label("@platforms//os:linux"),
+        Label("@platforms//cpu:" + cpu),
     ]
 
     native.toolchain(
@@ -168,6 +198,6 @@ def sonic_host_toolchain(name, cpu, gcc_repo, target_platform, visibility = None
         exec_compatible_with = constraints,
         target_compatible_with = constraints + [target_platform],
         toolchain = name + "_cc_toolchain",
-        toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+        toolchain_type = Label("@bazel_tools//tools/cpp:toolchain_type"),
         visibility = visibility,
     )

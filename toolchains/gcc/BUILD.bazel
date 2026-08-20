@@ -1,43 +1,12 @@
-# Copyright 2025 The Bazel Authors. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
-load(":defs.bzl", "sonic_host_toolchain")
 
 licenses(["notice"])
 
-# Shared by every toolchain below.
+# Shared by every generated cc toolchain.
 # https://github.com/bazelbuild/rules_cc/commit/283d572e0e1f4fe864f1f94db2c2cd27cb1dcc6e
 cc_feature(
     name = "external_include_paths",
     args = ["@rules_cc//cc/toolchains/args/external_include_paths"],
     feature_name = "external_include_paths",
-    visibility = ["//visibility:public"],
-)
-
-sonic_host_toolchain(
-    name = "host_x86_64_gcc_toolchain",
-    cpu = "x86_64",
-    gcc_repo = "@gcc-linux-target-x86_64-host-x86_64",
-    target_platform = "//platforms:trixie",
-    visibility = ["//visibility:public"],
-)
-
-sonic_host_toolchain(
-    name = "host_aarch64_gcc_toolchain",
-    cpu = "aarch64",
-    gcc_repo = "@gcc-linux-target-aarch64-host-aarch64",
-    target_platform = "//platforms:trixie",
     visibility = ["//visibility:public"],
 )
