@@ -31,6 +31,8 @@ _FEATURES = [
     Label("@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"),
 ]
 
+_GCC_CAPABILITIES = [Label("@rules_cc//cc/toolchains/capabilities:supports_pic")]
+
 def bin(cpu, version, tool):
     """A tool from one GCC distribution, e.g. its `objcopy`.
 
@@ -106,12 +108,14 @@ def sonic_host_toolchain(
     cc_tool(
         name = name + "_gcc",
         src = _bin("gcc"),
+        capabilities = _GCC_CAPABILITIES,
         data = [name + "_multicall_support_files"],
         tags = ["manual"],
     )
     cc_tool(
         name = name + "_g++",
         src = _bin("g++"),
+        capabilities = _GCC_CAPABILITIES,
         data = [name + "_multicall_support_files"],
         tags = ["manual"],
     )

@@ -1,3 +1,7 @@
+// Deliberately requires -fPIC to end up in a shared library.
+int greet_count = 0;
+
 int greet(int x) {
-  return x + 1;
+  greet_count += 1;
+  return x + greet_count;
 }
