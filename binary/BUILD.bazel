@@ -2,5 +2,6 @@
 # referenced from other packages, so it must be exported.
 exports_files([
     "test_stripped_binary.sh",
+    "test_position_independent.sh",
     "strip_binary.sh",
 ])
