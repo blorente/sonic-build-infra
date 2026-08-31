@@ -35,6 +35,6 @@ mkdir -p "$(dirname "$debug_file")"
 
 # Strip the debug info from the binary and point it back at the debug file.
 # objcopy records only the basename in the .gnu_debuglink.
-"$objcopy" --strip-debug --add-gnu-debuglink="$debug_file" "$tmp" "$stripped_out"
+"$objcopy" --strip-debug --strip-unneeded --add-gnu-debuglink="$debug_file" "$tmp" "$stripped_out"
 
 rm -f "$tmp"

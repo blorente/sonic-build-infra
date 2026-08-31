@@ -5,6 +5,7 @@ Behaviour mirrors Debian's dh_strip. It operates on ELFs directly via binutils o
 
 load("//toolchains/binutils:binutils_toolchain.bzl", "BINUTILS_TOOLCHAIN_TYPE")
 load(":debug_symbols.bzl", "DebugSymbolsInfo")
+load(":drop_build_rpath.bzl", "drop_build_rpath")
 load(":keep_debug_info.bzl", "keep_debug_info")
 
 def _strip_binary_rule_impl(ctx):
@@ -78,6 +79,11 @@ def _strip_binary_impl(name, src, force_debug_build, **kwargs):
         keep_debug_info_bin = "{}.debuggable".format(name)
         keep_debug_info(name = keep_debug_info_bin, src = src)
         binary = ":{}".format(keep_debug_info_bin)
+
+    # These binaries are meant to be deployed, so we always force-strip the sandbox-releative RPATHs.
+    no_build_rpath_bin = "{}.no_build_rpath".format(name)
+    drop_build_rpath(name = no_build_rpath_bin, src = binary)
+    binary = ":{}".format(no_build_rpath_bin)
 
     _strip_binary_rule(
         name = name,
