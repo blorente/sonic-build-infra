@@ -52,3 +52,34 @@ cc_args(
     }),
     visibility = ["//visibility:public"],
 )
+
+# dpkg-buildflags hands these flags to every Debian package build,
+# so we have to replicate tem in this toolchain.
+cc_args(
+    name = "hardening",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+    ],
+    args = [
+        "-fstack-protector-strong",
+        "-fstack-clash-protection",
+        "-fcf-protection",
+        "-Wformat",
+        "-Werror=format-security",
+        # Inert without optimisation, and glibc warns when it is missing.
+        "-D_FORTIFY_SOURCE=2",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_args(
+    name = "hardening_link",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = [
+        "-Wl,-z,relro",
+        "-Wl,-z,now",
+    ],
+    visibility = ["//visibility:public"],
+)
