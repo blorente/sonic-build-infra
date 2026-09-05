@@ -83,3 +83,17 @@ cc_args(
     ],
     visibility = ["//visibility:public"],
 )
+
+# A binary gets a DT_NEEDED entry for every library on its link line.
+# Bazel puts a target's whole transitive dependency set there.
+# --as-needed keeps only the libraries we need.
+cc_args(
+    name = "as_needed",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = [
+        "-Wl,--as-needed",
+    ],
+    visibility = ["//visibility:public"],
+)

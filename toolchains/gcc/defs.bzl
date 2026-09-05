@@ -26,6 +26,7 @@ _PLATFORM_INDEPENDENT_ARGS = [
     Label("//toolchains/args:warnings"),
     Label("//toolchains/args:hardening"),
     Label("//toolchains/args:hardening_link"),
+    Label("//toolchains/args:as_needed"),
 ]
 
 _FEATURES = [
