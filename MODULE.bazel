@@ -114,8 +114,12 @@ apt.install(
         # because we can't resolve the right virtual package from rules_distroless yet.
         "libgpm2",
         "strace",
-        "openssh-client",
         "sshpass",
+        "openssh-client",
+        # openssh-client's shared libraries.
+        # The FIPS OpenSSH deb ships without deps, so we fetch these from apt.
+        "libedit2",
+        "libfido2-1",
 
         # for sonic-swss-common
         # trixie ships libyang 3, so the -dev package lost its soversion suffix.
