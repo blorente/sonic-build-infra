@@ -57,6 +57,12 @@ execution tools and select the matching Bookworm target architecture, retaining
 a separate action audit, test events and logs. These checks do not claim
 ARMHF execution, an installed SONiC image, or full component downstream coverage.
 
+The native source matrix explicitly runs runtime-context and native-runtime
+contracts, including per-object ORIGIN, RPATH inheritance and RUNPATH isolation,
+checker argument forwarding, installation RPATH preservation and GCC prefix maps.
+The declared-tool matrix also runs the Trixie test runtime, Bookworm Perl and
+Bookworm Valgrind contracts on both native architectures.
+
 Archive timestamp checks cover the shared default and caller overrides, explicit
 zero times, and both direct tar and stripped-binary deployment paths. The tar.bzl
 patch owns generic manifest and changed-input-mtime regressions. The source
