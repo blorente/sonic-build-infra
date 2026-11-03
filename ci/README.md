@@ -8,24 +8,35 @@ revision, so the checks exercise the current PR with its target branch.
 Run `bash ci/bazel-ci.sh` on a native AMD64 or ARM64 Debian Trixie host with
 Bazel 8.5.1, a C/C++ compiler, binutils, GDB, Git, Python, tar and xz installed.
 Local builds default to `sonic-bazel-registry/main` and the Bazel Central
-Registry. The native APT interfaces use `rules_distroless` `0.9.4.sonic.15`
-from [registry #177](https://github.com/securely1g/sonic-bazel-registry/pull/177).
-[Registry #146](https://github.com/securely1g/sonic-bazel-registry/pull/146)
-published the individual library exports as `.14`; `.15` preserves them and
-loads the public Bazel 8 C/C++ import interface. The published `.13` and `.14`
-recipes remain unchanged.
+Registry. The locked native APT interfaces request `rules_distroless`
+`0.9.4.sonic.17` from [registry #207](https://github.com/securely1g/sonic-bazel-registry/pull/207),
+preserving the individual header and library exports. This Draft also depends on
+[registry #204](https://github.com/securely1g/sonic-bazel-registry/pull/204) (gawk),
+[#205](https://github.com/securely1g/sonic-bazel-registry/pull/205) (rules_python),
+[#206](https://github.com/securely1g/sonic-bazel-registry/pull/206) (tar.bzl), and
+[#159](https://github.com/securely1g/sonic-bazel-registry/pull/159) (Gazelle).
 
-Local builds and both native workflows use the published recipe from the
-maintained registry's `main` branch. Reproduce the source checks on a native
-Trixie host with:
+For this Draft's `pr/locked-migration-interfaces-20261103` branch only, both
+native workflows replace the maintained SONiC endpoint with the complete reviewed
+candidate catalog at
+`https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/ec6757295100aa30f7f911dd180af7d84c66761b`.
+Other PRs, pushes and manual runs retain `main`, and `.bazelrc` remains unchanged.
+The candidate contains the pending prerequisites; it is neither a fallback to a
+second version of the same registry nor evidence that those PRs have merged.
+Remove this temporary branch override after the dependencies are published.
+The PR remains Draft while those prerequisites are outstanding.
+
+Reproduce the Draft source checks on a native Trixie host with:
 
 ```sh
-bash ci/bazel-ci.sh
+SONIC_BAZEL_REGISTRY=https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/ec6757295100aa30f7f911dd180af7d84c66761b \
+  bash ci/bazel-ci.sh
 ```
 
-The script ignores user/workspace rc files and selects the maintained SONiC
-endpoint plus BCR. It generates `MODULE.bazel.lock` and records the resolved
-module graph and endpoint with the CI evidence; the lock remains ignored.
+The script ignores user/workspace rc files and selects exactly one SONiC endpoint
+plus BCR. It checks the committed APT lock before building, generates
+`MODULE.bazel.lock`, and records the resolved module graph and endpoint with the
+CI evidence; the generated module lock remains ignored.
 
 Distroless patches, upstream regressions and package-import consumer tests live
 with the [registry module](https://github.com/securely1g/sonic-bazel-registry/tree/main/modules/rules_distroless).
@@ -33,9 +44,8 @@ This repository tests its own SONiC rules, toolchains and APT adapters against
 the selected dependency recipe; it does not maintain a second Distroless
 patch archive or test suite.
 
-The main branch contains the landed tar.bzl patch. The separate shared-Rust
-workspace uses its unchanged BCR dependencies. The source
-script selects matching execution/target platforms. Module versions, source
+The separate shared-Rust workspace uses its unchanged BCR dependencies. The
+source script selects matching execution/target platforms. Module versions, source
 checksums and package snapshots remain explicit inputs. The repository deliberately
 excludes its large generated module lock; CI retains the resolved lock as evidence.
 
@@ -61,7 +71,12 @@ The native source matrix explicitly runs runtime-context and native-runtime
 contracts, including per-object ORIGIN, RPATH inheritance and RUNPATH isolation,
 checker argument forwarding, installation RPATH preservation and GCC prefix maps.
 The declared-tool matrix also runs the Trixie test runtime, Bookworm Perl and
-Bookworm Valgrind contracts on both native architectures.
+Bookworm Valgrind contracts on both native architectures, including changes
+limited to `apt/**` or `toolchains/bookworm/**`. Source and declared-tool tests
+run with cached test results disabled. The source matrix explicitly runs
+`//apt:bookworm_lock_test` against the committed lock to check the three Bookworm
+dependency sets on both architectures, including package closures and native
+header/library exports.
 
 Archive timestamp checks cover the shared default and caller overrides, explicit
 zero times, and both direct tar and stripped-binary deployment paths. The tar.bzl
@@ -79,9 +94,9 @@ deployment interpreter, and, on ARM64, compiles an ARM32 compatibility
 vDSO probe. These checks create no DEB packages or kernel image.
 
 Each run retains test XML/logs, build events, native host metadata, revision,
-resolved module locks, sample executables, and their runtime/debug deployment
-tars. Successful runs include checksums in `provenance.json`. Download the
-architecture-specific artifact from the Actions run page. Partial evidence is
+resolved module locks, the APT lock and its source/request inputs, sample
+executables, and their runtime/debug deployment tars. Successful runs include
+checksums in `provenance.json`. Download the architecture-specific artifact from the Actions run page. Partial evidence is
 retained when a validation step fails.
 
 The installed deployment-tar check verifies the complete runtime file set,

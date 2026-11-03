@@ -1,21 +1,38 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("//apt:apt_layer.bzl", "apt_layer")
 load(":base.bzl", "fixture_base")
 
 package(default_visibility = ["//visibility:public"])
 
-config_setting(name = "arm64", constraint_values = ["@platforms//cpu:aarch64"])
+config_setting(
+    name = "arm64",
+    constraint_values = ["@platforms//cpu:aarch64"],
+)
 
-py_binary(name = "fixture", srcs = ["fixture.py"])
+py_binary(
+    name = "fixture",
+    srcs = ["fixture.py"],
+)
+
 genrule(
     name = "fixture_lock",
-    srcs = ["@build_tools//aspell-en:data", "@build_tools//aspell-en:control"],
+    srcs = [
+        "@build_tools//aspell-en:data",
+        "@build_tools//aspell-en:control",
+    ],
     outs = ["fixture.lock.json"],
-    tools = [":fixture"],
     cmd = "$(execpath :fixture) $(execpath @build_tools//aspell-en:data) $(execpath @build_tools//aspell-en:control) $@",
+    tools = [":fixture"],
 )
+
 fixture_base(name = "base")
-py_binary(name = "selector", srcs = ["selector.py"], deps = ["//apt:lib"])
+
+py_binary(
+    name = "selector",
+    srcs = ["selector.py"],
+    deps = ["//apt:lib"],
+)
 
 # Exercise the original positional signature as well as keyword callers.
 apt_layer(
@@ -27,18 +44,24 @@ apt_layer(
     ":fixture_lock",
     ":selector",
     "added",
-    architecture = select({":arm64": "arm64", "//conditions:default": "amd64"}),
+    architecture = select({
+        ":arm64": "arm64",
+        "//conditions:default": "amd64",
+    }),
 )
 
 apt_layer(
     name = "retained",
-    packages = {"/test/aspell-en:all=2020.12.07-0-1": "@build_tools//aspell-en"},
-    lock = ":fixture_lock",
-    dependency_set = "dictionary",
+    architecture = select({
+        ":arm64": "arm64",
+        "//conditions:default": "amd64",
+    }),
     base = ":base",
+    dependency_set = "dictionary",
+    lock = ":fixture_lock",
+    packages = {"/test/aspell-en:all=2020.12.07-0-1": "@build_tools//aspell-en"},
     retained_manifest = ":fixture_lock",
     selector = ":selector",
-    architecture = select({":arm64": "arm64", "//conditions:default": "amd64"}),
     variant = "retained",
 )
 
@@ -46,35 +69,94 @@ apt_layer(
 # Make packages receive both independent JSON inputs in the sandbox.
 apt_layer(
     name = "policy_only",
-    packages = {"/test/aspell-en:all=2020.12.07-0-1": "@build_tools//aspell-en"},
-    lock = ":fixture_lock",
-    dependency_set = "dictionary",
+    architecture = select({
+        ":arm64": "arm64",
+        "//conditions:default": "amd64",
+    }),
     base = ":base",
-    selector = ":selector",
+    dependency_set = "dictionary",
+    lock = ":fixture_lock",
+    packages = {"/test/aspell-en:all=2020.12.07-0-1": "@build_tools//aspell-en"},
     policy = "policy_only.json",
-    architecture = select({":arm64": "arm64", "//conditions:default": "amd64"}),
+    selector = ":selector",
     variant = "added",
 )
 
 apt_layer(
     name = "policy_and_manifest",
-    packages = {"/test/aspell-en:all=2020.12.07-0-1": "@build_tools//aspell-en"},
-    lock = ":fixture_lock",
-    dependency_set = "dictionary",
+    architecture = select({
+        ":arm64": "arm64",
+        "//conditions:default": "amd64",
+    }),
     base = ":base",
+    dependency_set = "dictionary",
+    lock = ":fixture_lock",
+    packages = {"/test/aspell-en:all=2020.12.07-0-1": "@build_tools//aspell-en"},
+    policy = "policy_and_manifest.json",
     retained_manifest = ":fixture_lock",
     selector = ":selector",
-    policy = "policy_and_manifest.json",
-    architecture = select({":arm64": "arm64", "//conditions:default": "amd64"}),
     variant = "retained",
 )
+
 [
-    filegroup(name = variant + "_receipt", srcs = [":" + variant], output_group = "selection")
+    filegroup(
+        name = variant + "_receipt",
+        srcs = [":" + variant],
+        output_group = "selection",
+    )
     for variant in ("added", "retained", "policy_only", "policy_and_manifest")
 ]
+
 py_test(
     name = "adapter_test",
     srcs = ["adapter_test.py"],
-    args = ["$(rootpath " + label + ")" for label in ["@build_tools//aspell-en:data", ":added", ":retained", ":added_receipt", ":retained_receipt", ":policy_only", ":policy_only_receipt", ":policy_and_manifest", ":policy_and_manifest_receipt"]],
-    data = ["@build_tools//aspell-en:data", ":added", ":retained", ":added_receipt", ":retained_receipt", ":policy_only", ":policy_only_receipt", ":policy_and_manifest", ":policy_and_manifest_receipt"],
+    args = ["$(rootpath " + label + ")" for label in [
+        "@build_tools//aspell-en:data",
+        ":added",
+        ":retained",
+        ":added_receipt",
+        ":retained_receipt",
+        ":policy_only",
+        ":policy_only_receipt",
+        ":policy_and_manifest",
+        ":policy_and_manifest_receipt",
+    ]],
+    data = [
+        ":added",
+        ":added_receipt",
+        ":policy_and_manifest",
+        ":policy_and_manifest_receipt",
+        ":policy_only",
+        ":policy_only_receipt",
+        ":retained",
+        ":retained_receipt",
+        "@build_tools//aspell-en:data",
+    ],
+)
+
+cc_test(
+    name = "static_link_test",
+    srcs = ["static_link_test.c"],
+    linkstatic = True,
+    deps = [
+        "@trixie//libc6-dev:libm_static",
+        "@trixie//zlib1g-dev:libz_static",
+    ],
+)
+
+# Raw public archive labels must stay usable and retain their original DEB bytes.
+py_test(
+    name = "raw_archive_labels_test",
+    srcs = ["raw_archive_labels_test.py"],
+    args = [
+        "$(location @" + repository + "//:" + target + ")"
+        for repository in ["build_make_amd64", "build_make_arm64", "vim_amd64", "vim_arm64", "vim_runtime"]
+        for target in ["data.tar.xz", "deb"]
+    ],
+    data = [
+        "@" + repository + "//:" + target
+        for repository in ["build_make_amd64", "build_make_arm64", "vim_amd64", "vim_arm64", "vim_runtime"]
+        for target in ["data.tar.xz", "deb"]
+    ],
+    deps = ["//apt:lib"],
 )
