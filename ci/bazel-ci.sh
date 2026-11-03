@@ -83,9 +83,10 @@ if [[ -f tools/build_tools/prepare_rootfs.py ]]; then
   tests+=(//tools/build_tools:prepare_rootfs_test //tools/build_tools:kernel_debian_test)
   # This archive-only feature must not generate the kernel test's sample DEB.
   # Keep its declared runtime available and preserve every other native check.
-  if [[ "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-}}" == codex/debug-symbol-file-modes ]]; then
+  if [[ "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-}}" == codex/debug-symbol-file-modes ||
+        "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-}}" == codex/finalized-runtime-control ]]; then
     tests+=(//tools/build_tools:kernel_runtime)
-    printf '%s\n' 'kernel_runtime_test omitted: debug archive validation does not generate DEBs' > "$artifacts/omitted-package-fixture.txt"
+    printf '%s\n' 'kernel_runtime_test omitted: archive and metadata validation does not generate DEBs' > "$artifacts/omitted-package-fixture.txt"
   else
     tests+=(//tools/build_tools:kernel_runtime_test)
   fi
