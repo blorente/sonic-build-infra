@@ -3,7 +3,7 @@
 ## Add service accounts
 
 `account_layer` is a compatibility name for the public Distroless `accounts`
-rule, selected through `rules_distroless 0.9.4.sonic.13`. It preserves
+rule, selected through `rules_distroless 0.9.4.sonic.15`. It preserves
 `/etc/passwd` and `/etc/group` from the checked OCI base and appends only the
 declared service accounts. For example, the base image adds Redis, and Syncd adds
 the `_ssh` group without copying Debian's account list. Distroless owns account
