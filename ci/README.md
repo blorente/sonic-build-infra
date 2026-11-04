@@ -22,11 +22,12 @@ plus BCR. It checks the committed APT lock before building, generates
 CI evidence; the generated module lock remains ignored.
 
 Source, declared-tool and sysroot checks pass `ci/source_mirrors.cfg` explicitly.
-For locked Debian package archives, Bazel tries the official Debian CDN before
-the original snapshot URL. This avoids snapshot download outages when the same
-archive is on the CDN, while retaining snapshots for older versions. Both URLs
-must satisfy the existing locked SHA256; package versions, indexes and checksums
-are unchanged. The fresh-output cache check uses the same downloader policy.
+For Debian snapshot package archives and indexes, Bazel tries
+`snapshot-cloudflare.debian.org` before the original `snapshot.debian.org` URL.
+This policy covers both `archive/debian` and `archive/debian-security`.
+Downloads retain their existing checksum verification; package versions,
+snapshot timestamps and locked checksums are unchanged. The fresh-output cache
+check uses the same downloader policy.
 Artifacts retain the downloader configuration alongside the other input evidence.
 
 Distroless patches, upstream regressions and package-import consumer tests live
