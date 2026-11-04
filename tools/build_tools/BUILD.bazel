@@ -587,6 +587,9 @@ py_test(
                 "graphviz",
                 "fonts-dejavu-core",
                 "debianutils",
+                "patch",
+                "libxml2-utils",
+                "xsltproc",
             ]
         ] + ["@build_tools//libprotobuf-dev:data"],
         profile = "foreign",
@@ -625,6 +628,9 @@ alias(
         "python3",
         "dot",
         "getconf",
+        "patch",
+        "xmllint",
+        "xsltproc",
     ]
 ]
 

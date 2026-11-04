@@ -4,7 +4,7 @@
     "notice": "AUTO-GENERATED. DO NOT EDIT MANUALLY."
   },
   "_inputs": {
-    "digest": "db47091f31f7ad1503770dc8833a185a6dd1f9d166a5a11d3d89b6462fc392e7",
+    "digest": "161064321178e59ace4179c48c5615672e4778830ccef5f80cb5b212f55e4a78",
     "module_requests_document": {
       "dependency_sets": {
         "base_debian": {
@@ -397,6 +397,8 @@
             "libtool:arm64",
             "libxml-simple-perl:amd64",
             "libxml-simple-perl:arm64",
+            "libxml2-utils:amd64",
+            "libxml2-utils:arm64",
             "libzstd-dev:arm64",
             "libzstd-dev:armhf",
             "libzstd1:amd64",
@@ -414,6 +416,8 @@
             "openssl:arm64",
             "pahole:amd64",
             "pahole:arm64",
+            "patch:amd64",
+            "patch:arm64",
             "perl:amd64",
             "perl:arm64",
             "pkgconf:amd64",
@@ -456,6 +460,8 @@
             "util-linux:arm64",
             "valgrind:amd64",
             "valgrind:arm64",
+            "xsltproc:amd64",
+            "xsltproc:arm64",
             "xz-utils:amd64",
             "xz-utils:arm64",
             "zlib1g-dev:arm64",
@@ -1689,6 +1695,8 @@
             "libtool:arm64",
             "libxml-simple-perl:amd64",
             "libxml-simple-perl:arm64",
+            "libxml2-utils:amd64",
+            "libxml2-utils:arm64",
             "libzstd-dev:arm64",
             "libzstd-dev:armhf",
             "libzstd1:amd64",
@@ -1706,6 +1714,8 @@
             "openssl:arm64",
             "pahole:amd64",
             "pahole:arm64",
+            "patch:amd64",
+            "patch:arm64",
             "perl:amd64",
             "perl:arm64",
             "pkgconf:amd64",
@@ -1748,6 +1758,8 @@
             "util-linux:arm64",
             "valgrind:amd64",
             "valgrind:arm64",
+            "xsltproc:amd64",
+            "xsltproc:arm64",
             "xz-utils:amd64",
             "xz-utils:arm64",
             "zlib1g-dev:arm64",
@@ -3101,12 +3113,14 @@
           "/trixie/libtool-bin:amd64": "2.5.4-4",
           "/trixie/libtool:amd64": "2.5.4-4",
           "/trixie/libxml-simple-perl:amd64": "2.25-2",
+          "/trixie/libxml2-utils:amd64": "2.12.7+dfsg+really2.9.14-2.1+deb13u3",
           "/trixie/libzstd1:amd64": "1.5.7+dfsg-1",
           "/trixie/lz4:amd64": "1.10.0-4",
           "/trixie/m4:amd64": "1.4.19-8",
           "/trixie/mawk:amd64": "1.3.4.20250131-1",
           "/trixie/opensp:amd64": "1.5.2-15.2",
           "/trixie/pahole:amd64": "1.30-1",
+          "/trixie/patch:amd64": "2.8-2",
           "/trixie/perl:amd64": "5.40.1-6",
           "/trixie/pkgconf:amd64": "1.8.1-4",
           "/trixie/protobuf-compiler-grpc:amd64": "1.51.1-6",
@@ -3128,6 +3142,7 @@
           "/trixie/thrift-compiler:amd64": "0.19.0-4+b1",
           "/trixie/util-linux:amd64": "2.41-5",
           "/trixie/valgrind:amd64": "1:3.24.0-3",
+          "/trixie/xsltproc:amd64": "1.1.35-1.2+deb13u3",
           "/trixie/xz-utils:amd64": "5.8.1-1+deb13u1",
           "/trixie/zlib1g:amd64": "1:1.3.dfsg+really1.3.1-1+b1",
           "/trixie/zstd:amd64": "1.5.7+dfsg-1"
@@ -3177,6 +3192,7 @@
           "/trixie/libtool-bin:arm64": "2.5.4-4",
           "/trixie/libtool:arm64": "2.5.4-4",
           "/trixie/libxml-simple-perl:arm64": "2.25-2",
+          "/trixie/libxml2-utils:arm64": "2.12.7+dfsg+really2.9.14-2.1+deb13u3",
           "/trixie/libzstd-dev:arm64": "1.5.7+dfsg-1",
           "/trixie/libzstd1:arm64": "1.5.7+dfsg-1",
           "/trixie/lz4:arm64": "1.10.0-4",
@@ -3184,6 +3200,7 @@
           "/trixie/mawk:arm64": "1.3.4.20250131-1",
           "/trixie/opensp:arm64": "1.5.2-15.2",
           "/trixie/pahole:arm64": "1.30-1",
+          "/trixie/patch:arm64": "2.8-2",
           "/trixie/perl:arm64": "5.40.1-6",
           "/trixie/pkgconf:arm64": "1.8.1-4",
           "/trixie/protobuf-compiler-grpc:arm64": "1.51.1-6",
@@ -3205,6 +3222,7 @@
           "/trixie/thrift-compiler:arm64": "0.19.0-4+b1",
           "/trixie/util-linux:arm64": "2.41-5",
           "/trixie/valgrind:arm64": "1:3.24.0-3",
+          "/trixie/xsltproc:arm64": "1.1.35-1.2+deb13u3",
           "/trixie/xz-utils:arm64": "5.8.1-1+deb13u1",
           "/trixie/zlib1g-dev:arm64": "1:1.3.dfsg+really1.3.1-1+b1",
           "/trixie/zlib1g:arm64": "1:1.3.dfsg+really1.3.1-1+b1",
@@ -17456,6 +17474,46 @@
       "size": 422284,
       "suite": "trixie-security",
       "version": "2.13.3+dfsg-1+deb13u1"
+    },
+    "/trixie-security/libgcrypt20:amd64=1.11.0-7+deb13u1": {
+      "architecture": "amd64",
+      "depends_on": [
+        "/trixie/gcc-14-base:amd64=14.2.0-19",
+        "/trixie/libc6:amd64=2.41-12+deb13u3",
+        "/trixie/libgcc-s1:amd64=14.2.0-19",
+        "/trixie/libgpg-error0:amd64=1.51-4"
+      ],
+      "filename": "pool/updates/main/libg/libgcrypt20/libgcrypt20_1.11.0-7+deb13u1_amd64.deb",
+      "files": [
+        "usr/lib/x86_64-linux-gnu/libgcrypt.so.20",
+        "usr/lib/x86_64-linux-gnu/libgcrypt.so.20.5.0"
+      ],
+      "name": "libgcrypt20",
+      "section": "libs",
+      "sha256": "f0eb41f8cb40896e0822e9ab65611e8383c12b721c76c54764f744abb4a8c247",
+      "size": 843104,
+      "suite": "trixie-security",
+      "version": "1.11.0-7+deb13u1"
+    },
+    "/trixie-security/libgcrypt20:arm64=1.11.0-7+deb13u1": {
+      "architecture": "arm64",
+      "depends_on": [
+        "/trixie/gcc-14-base:arm64=14.2.0-19",
+        "/trixie/libc6:arm64=2.41-12+deb13u3",
+        "/trixie/libgcc-s1:arm64=14.2.0-19",
+        "/trixie/libgpg-error0:arm64=1.51-4"
+      ],
+      "filename": "pool/updates/main/libg/libgcrypt20/libgcrypt20_1.11.0-7+deb13u1_arm64.deb",
+      "files": [
+        "usr/lib/aarch64-linux-gnu/libgcrypt.so.20",
+        "usr/lib/aarch64-linux-gnu/libgcrypt.so.20.5.0"
+      ],
+      "name": "libgcrypt20",
+      "section": "libs",
+      "sha256": "243a42b879c6675348279a3f9a40e535d57185af00dbfd51b7481e777f163da6",
+      "size": 741128,
+      "suite": "trixie-security",
+      "version": "1.11.0-7+deb13u1"
     },
     "/trixie-security/libgnutls30t64:amd64=3.8.9-3+deb13u4": {
       "architecture": "amd64",
@@ -107836,6 +107894,44 @@
       "suite": "trixie",
       "version": "2.16-1"
     },
+    "/trixie/libgpg-error0:amd64=1.51-4": {
+      "architecture": "amd64",
+      "depends_on": [
+        "/trixie/gcc-14-base:amd64=14.2.0-19",
+        "/trixie/libc6:amd64=2.41-12+deb13u3",
+        "/trixie/libgcc-s1:amd64=14.2.0-19"
+      ],
+      "filename": "pool/main/libg/libgpg-error/libgpg-error0_1.51-4_amd64.deb",
+      "files": [
+        "usr/lib/x86_64-linux-gnu/libgpg-error.so.0",
+        "usr/lib/x86_64-linux-gnu/libgpg-error.so.0.38.0"
+      ],
+      "name": "libgpg-error0",
+      "section": "libs",
+      "sha256": "22b95570fd41c113ef6f5651563b4d748292844baab1278a46eb940c1dec2322",
+      "size": 82108,
+      "suite": "trixie",
+      "version": "1.51-4"
+    },
+    "/trixie/libgpg-error0:arm64=1.51-4": {
+      "architecture": "arm64",
+      "depends_on": [
+        "/trixie/gcc-14-base:arm64=14.2.0-19",
+        "/trixie/libc6:arm64=2.41-12+deb13u3",
+        "/trixie/libgcc-s1:arm64=14.2.0-19"
+      ],
+      "filename": "pool/main/libg/libgpg-error/libgpg-error0_1.51-4_arm64.deb",
+      "files": [
+        "usr/lib/aarch64-linux-gnu/libgpg-error.so.0",
+        "usr/lib/aarch64-linux-gnu/libgpg-error.so.0.38.0"
+      ],
+      "name": "libgpg-error0",
+      "section": "libs",
+      "sha256": "f9a8ee3f325360dbbb1c98331c60c7aa454a054a8a4564bc36b3e52fb53e019e",
+      "size": 78544,
+      "suite": "trixie",
+      "version": "1.51-4"
+    },
     "/trixie/libgpm2:amd64=1.20.7-11+b2": {
       "architecture": "amd64",
       "control_sha256": "1a1810c9ee3b6d2fda4ec2d0f25780415393aa9f674c1b1cd206d4621b2f9f4e",
@@ -139012,6 +139108,50 @@
       "suite": "trixie",
       "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
     },
+    "/trixie/libxml2-utils:amd64=2.12.7+dfsg+really2.9.14-2.1+deb13u3": {
+      "architecture": "amd64",
+      "depends_on": [
+        "/trixie/gcc-14-base:amd64=14.2.0-19",
+        "/trixie/libc6:amd64=2.41-12+deb13u3",
+        "/trixie/libgcc-s1:amd64=14.2.0-19",
+        "/trixie/liblzma5:amd64=5.8.1-1+deb13u1",
+        "/trixie/libxml2:amd64=2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "/trixie/zlib1g:amd64=1:1.3.dfsg+really1.3.1-1+b1"
+      ],
+      "filename": "pool/main/libx/libxml2/libxml2-utils_2.12.7+dfsg+really2.9.14-2.1+deb13u3_amd64.deb",
+      "files": [
+        "usr/bin/xmlcatalog",
+        "usr/bin/xmllint"
+      ],
+      "name": "libxml2-utils",
+      "section": "text",
+      "sha256": "cfa40541f9b314491c53b6c63e23ee1a2afa2ac309e6ca379c1081ef2b62e773",
+      "size": 101244,
+      "suite": "trixie",
+      "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+    },
+    "/trixie/libxml2-utils:arm64=2.12.7+dfsg+really2.9.14-2.1+deb13u3": {
+      "architecture": "arm64",
+      "depends_on": [
+        "/trixie/gcc-14-base:arm64=14.2.0-19",
+        "/trixie/libc6:arm64=2.41-12+deb13u3",
+        "/trixie/libgcc-s1:arm64=14.2.0-19",
+        "/trixie/liblzma5:arm64=5.8.1-1+deb13u1",
+        "/trixie/libxml2:arm64=2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "/trixie/zlib1g:arm64=1:1.3.dfsg+really1.3.1-1+b1"
+      ],
+      "filename": "pool/main/libx/libxml2/libxml2-utils_2.12.7+dfsg+really2.9.14-2.1+deb13u3_arm64.deb",
+      "files": [
+        "usr/bin/xmlcatalog",
+        "usr/bin/xmllint"
+      ],
+      "name": "libxml2-utils",
+      "section": "text",
+      "sha256": "8fe018b0270315582f1fbb40cea2df2972ff77bc8faac516d71b92280622c97f",
+      "size": 99508,
+      "suite": "trixie",
+      "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+    },
     "/trixie/libxml2:amd64=2.12.7+dfsg+really2.9.14-2.1+deb13u3": {
       "architecture": "amd64",
       "control_sha256": "7999a3d797465ea19fb976a377855d2d6411fa6e6e27a9d27fe3e35e5989551f",
@@ -139292,6 +139432,58 @@
       "size": 27024,
       "suite": "trixie",
       "version": "1:0.9.12-1"
+    },
+    "/trixie/libxslt1.1:amd64=1.1.35-1.2+deb13u3": {
+      "architecture": "amd64",
+      "depends_on": [
+        "/trixie-security/libgcrypt20:amd64=1.11.0-7+deb13u1",
+        "/trixie/gcc-14-base:amd64=14.2.0-19",
+        "/trixie/libc6:amd64=2.41-12+deb13u3",
+        "/trixie/libgcc-s1:amd64=14.2.0-19",
+        "/trixie/libgpg-error0:amd64=1.51-4",
+        "/trixie/liblzma5:amd64=5.8.1-1+deb13u1",
+        "/trixie/libxml2:amd64=2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "/trixie/zlib1g:amd64=1:1.3.dfsg+really1.3.1-1+b1"
+      ],
+      "filename": "pool/main/libx/libxslt/libxslt1.1_1.1.35-1.2+deb13u3_amd64.deb",
+      "files": [
+        "usr/lib/x86_64-linux-gnu/libexslt.so.0",
+        "usr/lib/x86_64-linux-gnu/libexslt.so.0.8.20",
+        "usr/lib/x86_64-linux-gnu/libxslt.so.1",
+        "usr/lib/x86_64-linux-gnu/libxslt.so.1.1.35"
+      ],
+      "name": "libxslt1.1",
+      "section": "libs",
+      "sha256": "c8e5a745ca3afaa079b01e0c00d80a241101d1ab840407fcd4bb423de3326160",
+      "size": 233128,
+      "suite": "trixie",
+      "version": "1.1.35-1.2+deb13u3"
+    },
+    "/trixie/libxslt1.1:arm64=1.1.35-1.2+deb13u3": {
+      "architecture": "arm64",
+      "depends_on": [
+        "/trixie-security/libgcrypt20:arm64=1.11.0-7+deb13u1",
+        "/trixie/gcc-14-base:arm64=14.2.0-19",
+        "/trixie/libc6:arm64=2.41-12+deb13u3",
+        "/trixie/libgcc-s1:arm64=14.2.0-19",
+        "/trixie/libgpg-error0:arm64=1.51-4",
+        "/trixie/liblzma5:arm64=5.8.1-1+deb13u1",
+        "/trixie/libxml2:arm64=2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "/trixie/zlib1g:arm64=1:1.3.dfsg+really1.3.1-1+b1"
+      ],
+      "filename": "pool/main/libx/libxslt/libxslt1.1_1.1.35-1.2+deb13u3_arm64.deb",
+      "files": [
+        "usr/lib/aarch64-linux-gnu/libexslt.so.0",
+        "usr/lib/aarch64-linux-gnu/libexslt.so.0.8.20",
+        "usr/lib/aarch64-linux-gnu/libxslt.so.1",
+        "usr/lib/aarch64-linux-gnu/libxslt.so.1.1.35"
+      ],
+      "name": "libxslt1.1",
+      "section": "libs",
+      "sha256": "590a5d177dcfa2bf432f0d7db80b936ac7afadfebdb7f077d0c3305da20d1897",
+      "size": 222332,
+      "suite": "trixie",
+      "version": "1.1.35-1.2+deb13u3"
     },
     "/trixie/libxt6t64:amd64=1:1.2.1-1.2+b2": {
       "architecture": "amd64",
@@ -161227,6 +161419,54 @@
       "size": 20088,
       "suite": "trixie",
       "version": "0.19"
+    },
+    "/trixie/xsltproc:amd64=1.1.35-1.2+deb13u3": {
+      "architecture": "amd64",
+      "depends_on": [
+        "/trixie-security/libgcrypt20:amd64=1.11.0-7+deb13u1",
+        "/trixie/gcc-14-base:amd64=14.2.0-19",
+        "/trixie/libc6:amd64=2.41-12+deb13u3",
+        "/trixie/libgcc-s1:amd64=14.2.0-19",
+        "/trixie/libgpg-error0:amd64=1.51-4",
+        "/trixie/liblzma5:amd64=5.8.1-1+deb13u1",
+        "/trixie/libxml2:amd64=2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "/trixie/libxslt1.1:amd64=1.1.35-1.2+deb13u3",
+        "/trixie/zlib1g:amd64=1:1.3.dfsg+really1.3.1-1+b1"
+      ],
+      "filename": "pool/main/libx/libxslt/xsltproc_1.1.35-1.2+deb13u3_amd64.deb",
+      "files": [
+        "usr/bin/xsltproc"
+      ],
+      "name": "xsltproc",
+      "section": "text",
+      "sha256": "0853d3ae8cf51fbb9fddb9a885a6a2f5e9b37dd3bd5320344c14768e54a3c63a",
+      "size": 114960,
+      "suite": "trixie",
+      "version": "1.1.35-1.2+deb13u3"
+    },
+    "/trixie/xsltproc:arm64=1.1.35-1.2+deb13u3": {
+      "architecture": "arm64",
+      "depends_on": [
+        "/trixie-security/libgcrypt20:arm64=1.11.0-7+deb13u1",
+        "/trixie/gcc-14-base:arm64=14.2.0-19",
+        "/trixie/libc6:arm64=2.41-12+deb13u3",
+        "/trixie/libgcc-s1:arm64=14.2.0-19",
+        "/trixie/libgpg-error0:arm64=1.51-4",
+        "/trixie/liblzma5:arm64=5.8.1-1+deb13u1",
+        "/trixie/libxml2:arm64=2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+        "/trixie/libxslt1.1:arm64=1.1.35-1.2+deb13u3",
+        "/trixie/zlib1g:arm64=1:1.3.dfsg+really1.3.1-1+b1"
+      ],
+      "filename": "pool/main/libx/libxslt/xsltproc_1.1.35-1.2+deb13u3_arm64.deb",
+      "files": [
+        "usr/bin/xsltproc"
+      ],
+      "name": "xsltproc",
+      "section": "text",
+      "sha256": "d13f3252d8886aafa300824c4a5564e42dfa58b4b94a1ab8944a5951b4c3f52c",
+      "size": 114900,
+      "suite": "trixie",
+      "version": "1.1.35-1.2+deb13u3"
     },
     "/trixie/xz-utils:amd64=5.8.1-1+deb13u1": {
       "architecture": "amd64",
