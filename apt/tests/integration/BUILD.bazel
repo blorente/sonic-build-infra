@@ -160,3 +160,64 @@ py_test(
     ],
     deps = ["//apt:lib"],
 )
+
+# Two independently selected TARs share parent directories. Test the public
+# adapter itself, including its selection receipt, without creating DEBs.
+py_binary(
+    name = "overlap_fixture",
+    srcs = ["overlap_fixture.py"],
+)
+
+genrule(
+    name = "overlap_inputs",
+    outs = [
+        "overlap_a.data.tar",
+        "overlap_a.control.tar",
+        "overlap_b.data.tar",
+        "overlap_b.control.tar",
+        "overlap.lock.json",
+    ],
+    cmd = "$(execpath :overlap_fixture) $(@D)",
+    tools = [":overlap_fixture"],
+)
+
+apt_layer(
+    name = "overlap_layer",
+    architecture = select({
+        ":arm64": "arm64",
+        "//conditions:default": "amd64",
+    }),
+    base = ":base",
+    dependency_set = "dictionary",
+    lock = ":overlap.lock.json",
+    packages = {
+        "/test/apt-overlap-a:all=1.0": "//apt/tests/integration/overlap/a",
+        "/test/apt-overlap-b:all=1.0": "//apt/tests/integration/overlap/b",
+    },
+    retained_manifest = ":overlap.lock.json",
+    selector = ":selector",
+    variant = "added",
+)
+
+filegroup(
+    name = "overlap_receipt",
+    srcs = [":overlap_layer"],
+    output_group = "selection",
+)
+
+py_test(
+    name = "overlap_test",
+    srcs = ["overlap_test.py"],
+    args = ["$(rootpath " + label + ")" for label in [
+        ":overlap_a.data.tar",
+        ":overlap_b.data.tar",
+        ":overlap_layer",
+        ":overlap_receipt",
+    ]],
+    data = [
+        ":overlap_a.data.tar",
+        ":overlap_b.data.tar",
+        ":overlap_layer",
+        ":overlap_receipt",
+    ],
+)

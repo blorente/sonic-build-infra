@@ -99,7 +99,9 @@ interpreters, runtime libraries, templates and child tools in runfiles.
 `apt_inputs` reads the same lock and generates public package label mappings.
 It never resolves or downloads packages and is not another version list.
 `apt_layer` handles selection against an OCI base and uses public `data/control`
-archives. Rootfs consumers use the same public archives through their own
+archives. It assembles selected archives with standard
+`flatten(tars=[...], deduplicate=True)`: shared paths appear once and later
+non-ELF overrides retain their final bytes and metadata. Rootfs consumers use the same public archives through their own
 installation/assembly interface. Neither copying archives nor library export
 runs Debian maintainer scripts. Package dependencies, install behavior, accounts,
 service setup and status generation must follow the consuming image contract.
@@ -111,3 +113,7 @@ merge identity/hashes, version preservation, existing extracted metadata,
 explicit source-change authorization, and failed-update file protection.
 Actual resolver/export and Docker/rootfs/library/tool consumers are separate
 integration boundaries and must be verified against the selected candidate.
+
+`//apt/tests/integration:overlap_test` checks unique archive paths and final
+payload bytes, permissions, ownership, timestamps and link targets when
+selected APT archives overlap.

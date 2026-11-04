@@ -458,7 +458,9 @@ def generate(*, control, changelog, module, architecture, tools, tar, output, tr
         for name, record in own.items():
             supplied = read_substvars(substvars.get(name))
             variables = dict(supplied)
-            generated = helper_substitutions(dpkg, name, record["root"], generated_stanzas[name], debian, variables, control_file_helpers)
+            # Finalized binary controls already contain helper dependencies.
+            generated = (helper_substitutions(dpkg, name, record["root"], generated_stanzas[name], debian, variables, control_file_helpers)
+                         if changelog is not None else {})
             require(not set(generated) & set(variables), "duplicate generated and supplied Debian substitutions")
             variables.update(generated)
             # Match dh_gencontrol's defaults. These values describe the absence

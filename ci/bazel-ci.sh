@@ -55,6 +55,7 @@ tests=(
   //apt/tests/integration:adapter_test
   //apt/tests/integration:static_link_test
   //apt/tests/integration:raw_archive_labels_test
+  //apt/tests/integration:overlap_test
   //tests:hello_build_test
   //tests:hello_cpp_build_test
   //tests:hello_strip_test
@@ -120,21 +121,17 @@ if [[ -f tar/root_owned_tar.bzl ]]; then
   tests+=(//tar:root_owned_tar_test //tar:debug_symbols_ownership_test //tar:debug_symbols_modes_test)
 fi
 if [[ -f tools/build_tools/prepare_rootfs.py ]]; then
-  tests+=(//tools/build_tools:prepare_rootfs_test //tools/build_tools:kernel_debian_test)
-  # This archive-only feature must not generate the kernel test's sample DEB.
-  # Keep its declared runtime available and preserve every other native check.
-  if [[ "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-}}" == codex/debug-symbol-file-modes ]]; then
-    tests+=(//tools/build_tools:kernel_runtime)
-    printf '%s\n' 'kernel_runtime_test omitted: debug archive validation does not generate DEBs' > "$artifacts/omitted-package-fixture.txt"
-  else
-    tests+=(//tools/build_tools:kernel_runtime_test)
-  fi
+  tests+=(//tools/build_tools:prepare_rootfs_test //tools/build_tools:kernel_debian_test
+    //tools/build_tools:kernel_runtime_test)
   if [[ "$debian_arch" == amd64 ]]; then
     tests+=(//tools/build_tools:kernel_cross_runtime_arm64_test //tools/build_tools:kernel_cross_runtime_armhf_test)
   fi
 fi
 outputs=(//tests:hello //tests:hello_cpp //tests:hello_deploy_tar //tests:hello_deploy_tar.debug_symbols
   //tar:timestamp_default_tar //tests:timestamp_deploy_tar //tests:timestamp_deploy_tar.debug_symbols)
+if [[ "$debian_arch" == amd64 && -f tools/build_tools/docbook_runtime_test.py ]]; then
+  tests+=(//tools/build_tools:docbook_runtime_test)
+fi
 # Audit the actual configured graph, including imported tests, before executing
 # any action. The dedicated DEB compatibility test intentionally creates DEBs;
 # keep it in the test suite and audit the ordinary production graph separately.
@@ -147,7 +144,7 @@ for target in "${tests[@]}"; do
 done
 "${bazel_cmd[@]}" aquery "${flags[@]}" --output=jsonproto \
   "deps(set(${audit_tests[*]} ${outputs[*]}))" > "$artifacts/actions.json"
-apt_python_tests=(//apt:dependencies_test //apt:selection_test //apt:inputs_test //apt/tests/integration:adapter_test)
+apt_python_tests=(//apt:dependencies_test //apt:selection_test //apt:inputs_test //apt/tests/integration:adapter_test //apt/tests/integration:overlap_test)
 apt_python_flags=("${flags[@]}" --@rules_python//python/config_settings:python_version=3.13)
 "${bazel_cmd[@]}" aquery "${apt_python_flags[@]}" --output=jsonproto \
   "deps(set(${apt_python_tests[*]}))" > "$artifacts/apt-python313-actions.json"

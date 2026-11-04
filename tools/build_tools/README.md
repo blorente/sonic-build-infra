@@ -1,5 +1,28 @@
 # Declared build-time tools
 
+For native AMD64, `:docbook2man` generates manpages from one DocBook SGML input.
+It uses the same OpenSP parser, SGMLS Perl converter and DocBook data as Debian's
+`docbook-utils` man backend. Set `SOURCE_DATE_EPOCH` to the source timestamp;
+missing timestamps and malformed SGML fail. The tool does not use host Jade,
+SGML catalogs, Perl modules or PDF/TeX programs. The separate `:docbook_runtime`
+tree supports `rules_foreign_cc` through its relocatable `bin/docbook2man`.
+
+SONiC wpa-supplicant's native recipe runs `docbook2man` on the five manuals
+shipped in `wpasupplicant`, including `wpa_cli.sgml` and `wpa_supplicant.conf.sgml`.
+`docbook_runtime_test` uses those exact files at source revision `6ca19c73` and
+compares every generated manual byte with the unchanged Debian backend, then
+checks relocation and invalid inputs. This is a build tool; it does not produce
+a Debian package or change the compiler's target sysroot. ARM and other DocBook
+output formats are outside this addition.
+
+`docbook-utils` stays in the shared `build_tools` APT set. This runtime selects
+only its `:data` payload plus the declared OpenSP/SGMLS dependencies; it does
+not execute its Jade, HTML or TeX backends. The kernel runtime retains its
+maintained package roots and their complete dependency closure through the
+separate kernel-runtime subset prerequisite. Adding DocBook tools therefore
+does not add Jade, TeX/PDF or browser packages to that runtime. Both consumers
+still use the same shared execution-tool package set.
+
 Use these executable targets for generators that need Aspell or Doxygen:
 
 | Target | Behavior |
@@ -367,7 +390,9 @@ preprocessors. It rejects a linker outside Bazel's execution root.
 For large target dependency closures, GCC can exceed Linux's per-string process
 limit when it copies all include and library search options into
 `COLLECT_GCC_OPTIONS`. The adapter creates a private compiler launcher that
-forwards the native `-I` group through `-Xpreprocessor`. It preserves that group's
+forwards native `-I`, `-iquote` and `-isystem` groups through `-Xpreprocessor`.
+Quote-only and system-header search classes remain unchanged, including system
+header warning suppression. It preserves those groups' original order and
 precedence before already forwarded preprocessor options. It also shortens an
 absolute `-L` directory relative to the compiler's physical working directory
 when that spelling is shorter. For example, a long Bazel execution-root prefix
@@ -389,6 +414,13 @@ and checks competing-header precedence and exact linker/output operands. It
 also reproduces the library-only `collect2` spawn failure, then links and runs
 successfully with the adapter. Competing static libraries verify search priority
 from nested and symlinked working directories, including SDK paths with spaces.
+The quote/system regression also keeps the large header and library closures in
+the actual Autoconf and recursive Libtool build. This covers the PI SDK used by
+the AMD64 gearbox image: its Debian native interfaces supply 132 quote roots and
+272 system roots, which the old ordinary-include-only launcher left in GCC's
+collected options. In the retained gearbox failure those options reached
+136,783 bytes, exceeding Linux's 131,072-byte per-string limit, although no
+individual compiler argument exceeded 394 bytes.
 
 ## Cross-compile kernel packages on AMD64
 
@@ -488,3 +520,26 @@ Perl and instrumentation runtime subsets. This approved suite-specific exception
 preserves Perl 5.36 for Bookworm XS generators; the existing Trixie `build_tools`
 set supplies Perl 5.40. Both subsets use the execution configuration, and target
 debug libraries remain separate.
+
+## Kernel runtime package boundary
+
+`kernel_roots.bzl` fixes the execution package roots consumed by
+`kernel_runtime` to the maintained 17a1e555 selection: 63 AMD64 roots and
+62 ARM64 roots from the same shared `build_tools` APT set. Each root retains
+its declared transitive dependencies, and the existing cross-target ABI data,
+controls and native library metadata remain unchanged. The existing
+`dpkg_status` rule generates status for that selected subset.
+
+This is a conservative compatibility boundary, not a minimal kernel toolset.
+New shared generators do not automatically enter the kernel rootfs; extend
+the explicit roots when an actual kernel consumer requires another tool.
+For example, DocBook's SGML/man tooling can use the shared package set without
+adding its unrelated Jade/TeX/PDF dependencies to the kernel compiler and
+metadata runtime. Strict runtime symlink validation remains enabled.
+
+`kernel_runtime_tools_test` reuses the existing relocated runtime test, including
+actual C/C++ compilation, native shared/static link inputs, Quilt push/pop,
+Perl XML parsing, tool execution and Debian dependency metadata. Its explicit
+`--tools-only` mode omits only the function that creates the runtime/debug DEB
+fixture. `kernel_runtime_test` retains the original full behavior and remains
+the CI check for every branch.

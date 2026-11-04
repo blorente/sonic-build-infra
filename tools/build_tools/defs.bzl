@@ -56,7 +56,7 @@ build_tools_runtime = rule(
     attrs = {
         "architecture": attr.string(mandatory = True, values = ["amd64", "arm64"]),
         "packages": attr.label_list(allow_files = True, mandatory = True),
-        "profile": attr.string(default = "documentation", values = ["documentation", "configure", "kerberos", "foreign", "image", "manuals", "tcl", "gdb", "tests", "perl"]),
+        "profile": attr.string(default = "documentation", values = ["documentation", "configure", "kerberos", "foreign", "image", "manuals", "tcl", "gdb", "tests", "perl", "docbook"]),
         "runtime_launcher": attr.label(allow_single_file = True, doc = "Optional target-built launcher consumed as output-runtime data, including cross-generated runtimes."),
         "_prepare": attr.label(default = Label(":prepare_runtime.py"), allow_single_file = True, cfg = "exec"),
         "_test_support": attr.label_list(default = [Label(":test_runtime.py"), Label("//deb:elf_metadata.py")], allow_files = True, cfg = "exec"),

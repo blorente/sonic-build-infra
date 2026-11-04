@@ -138,6 +138,10 @@ accounts, start services, or produce a DEB.
 Some source owners already provide finalized binary controls with their own
 `Version` instead of a source control and changelog. Those can omit `changelog`;
 they must contain a single package and no unresolved placeholders. Existing
+finalized controls keep their declared script/service dependencies; staging an
+init script or systemd unit does not rerun source-recipe helpers or require a
+fabricated debhelper compatibility level. ELF dependency analysis still checks
+the actual target payload and its declared libraries. Existing
 build-time version adjustments, such as FIPS's `+fips`, belong in the existing
 source-preparation recipe before metadata generation. Do not copy an adjusted
 version into this rule. Use `runtime_packages_group` to publish packages with
