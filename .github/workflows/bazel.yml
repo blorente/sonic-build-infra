@@ -44,9 +44,7 @@ jobs:
       EXPECTED_MACHINE: ${{ matrix.machine }}
       EXPECTED_DEBIAN_ARCH: ${{ matrix.debian_arch }}
       CI_IMAGE: debian:trixie-20260918@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
-      # Only this Draft validates the complete, commit-pinned prerequisite catalog.
-      # Other PRs, pushes and manual runs retain the maintained registry.
-      SONIC_BAZEL_REGISTRY: ${{ github.event.pull_request.draft && github.head_ref == 'pr/locked-migration-interfaces-20261103' && 'https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/ec6757295100aa30f7f911dd180af7d84c66761b' || 'https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/main' }}
+      SONIC_BAZEL_REGISTRY: https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/main
     steps:
       - name: Install native build tools
         run: |
@@ -78,12 +76,14 @@ jobs:
           --startup-option=--ignore_all_rc_files
           --bazel-option=--registry="$SONIC_BAZEL_REGISTRY"
           --bazel-option=--registry=https://bcr.bazel.build/
+          --bazel-option=--downloader_config="$PWD/ci/source_mirrors.cfg"
       - name: Validate native Debian GCC, Clang and their shared sysroot
         run: >-
           python3 toolchains/sysroot/tests/validate.py --artifacts ci-artifacts/shared-sysroot
           --startup-option=--ignore_all_rc_files
           --bazel-option=--registry="$SONIC_BAZEL_REGISTRY"
           --bazel-option=--registry=https://bcr.bazel.build/
+          --bazel-option=--downloader_config="$PWD/ci/source_mirrors.cfg"
       - name: Validate Debian cross GCC and Clang with an AMD64 source generator
         if: matrix.arch == 'AMD64'
         run: >-
@@ -91,6 +91,7 @@ jobs:
           --startup-option=--ignore_all_rc_files
           --bazel-option=--registry="$SONIC_BAZEL_REGISTRY"
           --bazel-option=--registry=https://bcr.bazel.build/
+          --bazel-option=--downloader_config="$PWD/ci/source_mirrors.cfg"
       - name: Send ARM64 programs and their declared runtime to the native runner
         if: matrix.arch == 'AMD64'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

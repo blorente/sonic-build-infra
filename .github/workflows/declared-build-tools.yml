@@ -43,9 +43,7 @@ jobs:
       PLATFORM: ${{ matrix.platform }}
       BAZEL_ARCH: ${{ matrix.bazel_arch }}
       BAZEL_SHA: ${{ matrix.bazel_sha }}
-      # Only this Draft validates the complete, commit-pinned prerequisite catalog.
-      # Other PRs, pushes and manual runs retain the maintained registry.
-      SONIC_BAZEL_REGISTRY: ${{ github.event.pull_request.draft && github.head_ref == 'pr/locked-migration-interfaces-20261103' && 'https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/ec6757295100aa30f7f911dd180af7d84c66761b' || 'https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/main' }}
+      SONIC_BAZEL_REGISTRY: https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/main
     steps:
       - name: Prepare Bazel bootstrap dependencies
         run: |
@@ -74,12 +72,14 @@ jobs:
           dpkg --print-architecture > ci-artifacts/architecture.txt
           cp /etc/os-release ci-artifacts/os-release
           python3 apt/lock.py check | tee ci-artifacts/apt-lock-check.log
-          mkdir -p ci-artifacts/apt
+          mkdir -p ci-artifacts/apt ci-artifacts/ci
           cp apt/apt.lock.json apt/sources.json apt/requests.json ci-artifacts/apt/
-          sha256sum MODULE.bazel apt/apt.lock.json apt/sources.json apt/requests.json > ci-artifacts/inputs.sha256
+          cp ci/source_mirrors.cfg ci-artifacts/ci/
+          sha256sum MODULE.bazel apt/apt.lock.json apt/sources.json apt/requests.json ci/source_mirrors.cfg > ci-artifacts/inputs.sha256
           flags=(--registry="$SONIC_BAZEL_REGISTRY" \
                  --registry=https://bcr.bazel.build/ --platforms="//platforms:$PLATFORM" \
                  --host_platform="//platforms:$PLATFORM" \
+                 --downloader_config="$PWD/ci/source_mirrors.cfg" \
                  '--remote_download_regex=(^|.*/)tools/build_tools/kernel_runtime_(amd64|arm64)(/.*)?$' \
                  --repository_cache="$RUNNER_TEMP/configure-tools-repository-cache" \
                  --disk_cache="$RUNNER_TEMP/configure-tools-cache" --lockfile_mode=update)

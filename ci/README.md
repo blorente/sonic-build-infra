@@ -7,36 +7,27 @@ revision, so the checks exercise the current PR with its target branch.
 
 Run `bash ci/bazel-ci.sh` on a native AMD64 or ARM64 Debian Trixie host with
 Bazel 8.5.1, a C/C++ compiler, binutils, GDB, Git, Python, tar and xz installed.
-Local builds default to `sonic-bazel-registry/main` and the Bazel Central
-Registry. The locked native APT interfaces request `rules_distroless`
-`0.9.4.sonic.17` from [registry #207](https://github.com/securely1g/sonic-bazel-registry/pull/207),
-preserving the individual header and library exports. This Draft also depends on
-[registry #204](https://github.com/securely1g/sonic-bazel-registry/pull/204) (gawk),
-[#205](https://github.com/securely1g/sonic-bazel-registry/pull/205) (rules_python),
-[#206](https://github.com/securely1g/sonic-bazel-registry/pull/206) (tar.bzl), and
-[#159](https://github.com/securely1g/sonic-bazel-registry/pull/159) (Gazelle).
-
-For this Draft's `pr/locked-migration-interfaces-20261103` branch only, both
-native workflows replace the maintained SONiC endpoint with the complete reviewed
-candidate catalog at
-`https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/ec6757295100aa30f7f911dd180af7d84c66761b`.
-Other PRs, pushes and manual runs retain `main`, and `.bazelrc` remains unchanged.
-The candidate contains the pending prerequisites; it is neither a fallback to a
-second version of the same registry nor evidence that those PRs have merged.
-Remove this temporary branch override after the dependencies are published.
-The PR remains Draft while those prerequisites are outstanding.
-
-Reproduce the Draft source checks on a native Trixie host with:
+Local builds and both native CI workflows use `sonic-bazel-registry/main`
+and the Bazel Central Registry. The checked-in module versions and canonical
+APT lock preserve package checksums and native header/library exports.
+Run the same source suite locally with:
 
 ```sh
-SONIC_BAZEL_REGISTRY=https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/ec6757295100aa30f7f911dd180af7d84c66761b \
-  bash ci/bazel-ci.sh
+bash ci/bazel-ci.sh
 ```
 
 The script ignores user/workspace rc files and selects exactly one SONiC endpoint
 plus BCR. It checks the committed APT lock before building, generates
 `MODULE.bazel.lock`, and records the resolved module graph and endpoint with the
 CI evidence; the generated module lock remains ignored.
+
+Source, declared-tool and sysroot checks pass `ci/source_mirrors.cfg` explicitly.
+For locked Debian package archives, Bazel tries the official Debian CDN before
+the original snapshot URL. This avoids snapshot download outages when the same
+archive is on the CDN, while retaining snapshots for older versions. Both URLs
+must satisfy the existing locked SHA256; package versions, indexes and checksums
+are unchanged. The fresh-output cache check uses the same downloader policy.
+Artifacts retain the downloader configuration alongside the other input evidence.
 
 Distroless patches, upstream regressions and package-import consumer tests live
 with the [registry module](https://github.com/securely1g/sonic-bazel-registry/tree/main/modules/rules_distroless).
@@ -52,7 +43,7 @@ excludes its large generated module lock; CI retains the resolved lock as eviden
 The explicit source tests cover C/C++ linking, shared-library/PIC behavior,
 stripping and deployment debug-provider/content behavior. The protoc smoke test
 generates C++, Python and Python type stubs with imported schemas and proto3
-optional fields using its declared compiler runtime. The shared API branch
+optional fields using its declared compiler runtime. The source suite
 also runs the nine external-consumer analysis/sysroot tests and rejects the
 unsafe archive fixture. Wheel installation tests run when the wheel-layer rule
 is present; archive ownership and debug-header ownership tests run when the

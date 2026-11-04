@@ -20,13 +20,15 @@ uname -a > "$artifacts/uname.txt"
 dpkg-query -W > "$artifacts/host-packages.txt"
 git rev-parse HEAD HEAD^{tree} > "$artifacts/revisions.txt"
 python3 apt/lock.py check | tee "$artifacts/apt-lock-check.log"
-mkdir -p "$artifacts/apt"
+mkdir -p "$artifacts/apt" "$artifacts/ci"
 cp apt/apt.lock.json apt/sources.json apt/requests.json "$artifacts/apt/"
-# Default to maintained main; Draft validation may select one exact candidate.
+cp ci/source_mirrors.cfg "$artifacts/ci/"
+# Use the maintained SONiC registry by default.
 # Record the effective endpoint with the generated module lock.
 registry=${SONIC_BAZEL_REGISTRY:-https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/main}
 printf '%s\n' "$registry" > "$artifacts/registry.txt"
-resolution=(--registry="$registry" --registry=https://bcr.bazel.build/ --lockfile_mode=update)
+resolution=(--registry="$registry" --registry=https://bcr.bazel.build/ --lockfile_mode=update
+            --downloader_config="$root/ci/source_mirrors.cfg")
 platform="//platforms:${cpu}_trixie"
 flags=("${resolution[@]}" --platforms="$platform" --host_platform="$platform" --jobs=4
        '--remote_download_regex=(^|.*/)tools/build_tools/kernel_runtime_(amd64|arm64)(/.*)?$')
