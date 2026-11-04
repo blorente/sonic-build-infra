@@ -80,16 +80,8 @@ if [[ -f tar/root_owned_tar.bzl ]]; then
   tests+=(//tar:root_owned_tar_test //tar:debug_symbols_ownership_test //tar:debug_symbols_modes_test)
 fi
 if [[ -f tools/build_tools/prepare_rootfs.py ]]; then
-  tests+=(//tools/build_tools:prepare_rootfs_test //tools/build_tools:kernel_debian_test)
-  # This archive-only feature must not generate the kernel test's sample DEB.
-  # Keep its declared runtime available and preserve every other native check.
-  if [[ "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-}}" == codex/debug-symbol-file-modes ||
-        "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-}}" == codex/finalized-runtime-control ]]; then
-    tests+=(//tools/build_tools:kernel_runtime)
-    printf '%s\n' 'kernel_runtime_test omitted: archive and metadata validation does not generate DEBs' > "$artifacts/omitted-package-fixture.txt"
-  else
-    tests+=(//tools/build_tools:kernel_runtime_test)
-  fi
+  tests+=(//tools/build_tools:prepare_rootfs_test //tools/build_tools:kernel_debian_test
+    //tools/build_tools:kernel_runtime_test)
   if [[ "$debian_arch" == amd64 ]]; then
     tests+=(//tools/build_tools:kernel_cross_runtime_arm64_test //tools/build_tools:kernel_cross_runtime_armhf_test)
   fi
@@ -100,7 +92,8 @@ if [[ "$debian_arch" == amd64 && -f tools/build_tools/docbook_runtime_test.py ]]
   tests+=(//tools/build_tools:docbook_runtime_test)
 fi
 # Audit the actual configured graph, including imported tests, before executing
-# any action. Importing Debian archives is expected; producing DEBs is not.
+# any action. Product outputs remain TARs; existing runtime tests may build
+# temporary sample Debian packages to validate the declared packaging tools.
 printf '%s\n' "${tests[@]}" "${outputs[@]}" > "$artifacts/targets.txt"
 "${bazel_cmd[@]}" aquery "${flags[@]}" --output=jsonproto \
   "deps(set(${tests[*]} ${outputs[*]}))" > "$artifacts/actions.json"
