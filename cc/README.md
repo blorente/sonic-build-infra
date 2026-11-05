@@ -9,9 +9,9 @@ new `LibraryToLink` from the file, so Bazel relocates the ELF into a second
 `_solib_*` tree: two copies of one library ship, and the producer's RUNPATH
 was computed for the original link location. The import also carries neither
 the producer's runfiles nor its transitive `dynamic_deps`, which must be
-redeclared by hand and kept in sync. sonic-swss-common used exactly that
-pattern before this adapter existed, and its SONAME regression came from the
-copy-and-rename step. Reusing the producer's existing linker input requires
+redeclared by hand and kept in sync.
+
+Reusing the producer's existing linker input requires
 reading `CcSharedLibraryInfo`, which only a Starlark rule can do; upstream
 `cc_shared_library` deliberately provides no `CcInfo`, so this adapter fills
 that gap (see the TODO in `shared_library.bzl` about proposing it upstream in
