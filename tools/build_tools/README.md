@@ -610,3 +610,18 @@ Review and commit `apt/requests.json` and `apt/apt.lock.json` together. The upda
 preserves existing archive identities and native file mappings. The worker
 metadata repository and archive targets consume that same lock during ordinary
 builds. `MODULE.bazel.lock` remains ignored generated resolution evidence.
+## Oversized linker arguments
+
+BMv2's AMD64 source build can pass more than 136 KiB through `LDFLAGS`, which
+Linux rejects before GCC starts. An owner can write one literal argument per
+line after `sonic-linker-arguments-v1` in `.sonic-linker-arguments`, beside the
+existing generated compiler launcher, and pass that exact file as an `@` argument.
+The launcher expands only this private vector before its existing per-directory
+library-path shortening. Ordinary GCC response files remain opaque. Arguments
+containing newlines are not supported by this private transport.
+
+The existing Libtool regression covers C and C++ links, compiler environment
+size, recursive-directory path handling and literal argument boundaries. BMv2
+owns the conversion from its shell-quoted `LDFLAGS` to this vector. This changes
+an input shared by PI, BMv2, LLDP, sFlow and Framework klish; their foreign-build
+actions may rerun even when existing Bazel caches are reused.
