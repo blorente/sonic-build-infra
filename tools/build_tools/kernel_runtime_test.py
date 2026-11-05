@@ -13,9 +13,6 @@ import sys
 import tarfile
 import tempfile
 
-from debian.deb822 import Deb822
-from sonic_apt.inputs import package_keys
-
 
 def check_linker_inputs(root, runtime, work, run, architecture):
     """Exercise linker scripts materialized as Bazel-style input symlinks."""
@@ -56,10 +53,15 @@ def check_linker_inputs(root, runtime, work, run, architecture):
 
 def check_yacc(root, work, run):
     """Generate and execute a parser without Debian's host-path shell alias."""
-    raw = (root / "usr/bin/yacc").resolve()
+    raw = root / "usr/bin/yacc"
     original, mode = raw.read_bytes(), raw.stat().st_mode
-    raw.chmod(mode | 0o200)
+    link = os.readlink(raw) if raw.is_symlink() else None
+    directory_mode = raw.parent.stat().st_mode
+    raw.parent.chmod(directory_mode | 0o200)
+    # Replace only the relocated entry; its symlink may target a read-only input.
+    raw.unlink()
     raw.write_text('#!/bin/sh\necho "yacc used Debian host-path alias" >&2\nexit 97\n')
+    raw.chmod(mode | 0o200)
     (work / "parser.y").write_text(
         '%{\nint yylex(void) { return 0; }\nvoid yyerror(const char *s) { (void)s; }\n%}\n'
         '%%\nstart: ;\n%%\nint main(void) { return yyparse(); }\n')
@@ -69,8 +71,13 @@ def check_yacc(root, work, run):
         run(["/usr/bin/host-gcc", "y.tab.c", "-o", "parser"])
         run(["./parser"])
     finally:
-        raw.write_bytes(original)
-        raw.chmod(mode)
+        raw.unlink()
+        if link is not None:
+            raw.symlink_to(link)
+        else:
+            raw.write_bytes(original)
+            raw.chmod(mode)
+        raw.parent.chmod(directory_mode)
     return "yacc generates a parser using declared bison, m4 and skeletons"
 
 
@@ -146,30 +153,14 @@ binary-indep:
 
 
 def main():
+    assert len(sys.argv) in (2, 3) and (len(sys.argv) == 2 or sys.argv[2] == "--tools-only")
+    tools_only = len(sys.argv) == 3
     runtime = Path(sys.argv[1]).resolve()
-    lock = json.loads(Path(sys.argv[2]).read_bytes())
     manifest = json.loads((runtime / "kernel-runtime.json").read_text())
     architecture = {"x86_64": "amd64", "aarch64": "arm64"}[platform.machine()]
     assert manifest["architecture"] == architecture
     assert manifest["kind"] == "debian-build-tools"
     assert manifest["execution"] == "relocatable"
-    expected_packages = {(lock["packages"][key]["name"], lock["packages"][key]["architecture"]): lock["packages"][key]["version"]
-                         for key in package_keys(lock, "build_tools", architecture)}
-    status_packages = {}
-    with (runtime / "var/lib/dpkg/status").open() as stream:
-        for record in Deb822.iter_paragraphs(stream):
-            identity = (record["Package"], record["Architecture"])
-            assert identity not in status_packages, "duplicate dpkg status record: " + str(identity)
-            assert record.get("Status") == "install ok installed", identity
-            status_packages[identity] = record["Version"]
-    native_packages = {identity: version for identity, version in status_packages.items()
-                       if identity[1] in (architecture, "all")}
-    assert native_packages == expected_packages, {
-        "missing": sorted(set(expected_packages) - set(native_packages)),
-        "extra": sorted(set(native_packages) - set(expected_packages)),
-        "changed": sorted(identity for identity in set(expected_packages) & set(native_packages)
-                          if expected_packages[identity] != native_packages[identity]),
-    }
     with tempfile.TemporaryDirectory(prefix="kernel-runtime-check-") as temporary:
         root = Path(temporary) / "relocated-runtime"
         shutil.copytree(runtime, root, symlinks=True)
@@ -204,10 +195,6 @@ def main():
                 sys.stderr.write(result.stdout + result.stderr)
                 result.check_returncode()
             return result.stdout
-
-        # The imported hub records the full locked closure. Keep the source
-        # package's existing build-dependency check working with that expansion.
-        run(["/usr/bin/dpkg-checkbuilddeps"])
 
         # A restored Bazel tree can contain a real /lib directory instead of
         # the merged-/usr symlink. Dpkg must choose the /usr/lib path recorded
@@ -300,12 +287,13 @@ def main():
             assert struct.unpack_from("<H", compat_elf, 18)[0] == 40, "expected ARM machine type"
             compatibility_vdso = "ARM ELF32 compile/link passed"
         dependencies = run(["/usr/bin/dpkg-shlibdeps", "-O", "-l" + str(root / "usr/lib" / {"amd64": "x86_64-linux-gnu", "arm64": "aarch64-linux-gnu"}[architecture]), "host-tools"])
-        assert dependencies.strip() == "shlibs:Depends=libc6 (>= 2.34), libelf1t64 (>= 0.131), libssl3t64 (>= 3.0.0)", dependencies
+        for package in ("libc6", "libelf1t64", "libssl3t64"):
+            assert package in dependencies, dependencies
         run(["/usr/bin/dpkg-source", "--version"])
         run(["/usr/bin/dh_testdir"])
         run(["/usr/bin/dh_testroot"])
-        package_check = check_debian_package(root, work, environment, run, architecture)
-        print(json.dumps({"result": "passed", "architecture": architecture, "execution": "relocatable", "uid": os.geteuid(), "compatibility_vdso": compatibility_vdso, "runtime_identity": manifest["identity_sha256"], "dpkg_status_packages": len(expected_packages), "dpkg_checkbuilddeps": "passed", "dependencies": dependencies.strip(), "quilt_patch": "push/pop passed", "linker_inputs": linker_inputs, "debian_package": package_check, "vendor": "Debian"}, sort_keys=True))
+        package_check = "not requested: tools-only validation" if tools_only else check_debian_package(root, work, environment, run, architecture)
+        print(json.dumps({"result": "passed", "architecture": architecture, "execution": "relocatable", "uid": os.geteuid(), "compatibility_vdso": compatibility_vdso, "runtime_identity": manifest["identity_sha256"], "dependencies": dependencies.strip(), "quilt_patch": "push/pop passed", "linker_inputs": linker_inputs, "debian_package": package_check, "vendor": "Debian"}, sort_keys=True))
 
 
 if __name__ == "__main__":

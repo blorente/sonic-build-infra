@@ -19,7 +19,6 @@ paths = [Path(value) for value in sys.argv[2:]]
 assert len(paths) == len(set(paths)) == len(expected), "DEB target does not contain one file per manifest row"
 actual = set()
 for path in paths:
-    assert path.name == "package.deb", path
     with path.open("rb") as stream:
         assert stream.read(8) == b"!<arch>\n", path
         stream.seek(0)

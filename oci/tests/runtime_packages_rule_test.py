@@ -20,13 +20,15 @@ metadata, library, program, generator, tools, tar, control, changelog = map(Path
 architecture = sys.argv[9]
 patchelf = Path(sys.argv[10])
 libc_data, libc_control = map(Path, sys.argv[11:13])
+finalized_control, finalized_service = map(Path, sys.argv[13:15])
 
 
 class RuntimePackagesRuleTest(unittest.TestCase):
-    def generate(self, root, source_control, payload, package="metadata-library", additional=()):
+    def generate(self, root, source_control, payload, package="metadata-library", additional=(), source_template=True):
         return subprocess.run([
             str(generator.resolve()), "--control", str(source_control),
-            "--changelog", str(changelog.resolve()), "--module", "sonic-build-infra",
+            *(["--changelog", str(changelog.resolve())] if source_template else []),
+            "--module", "sonic-build-infra",
             "--architecture", architecture, "--tools", str(tools.resolve()),
             "--tar", str(tar.resolve()), "--output", str(root / "metadata.json"),
             "--tree", str(root / "packages"),
@@ -55,7 +57,7 @@ class RuntimePackagesRuleTest(unittest.TestCase):
                 self.assertEqual(fields["Version"], "2.0")
                 self.assertEqual(fields["Maintainer"], "Example <example@example.org>")
                 self.assertNotIn("${", json.dumps(fields))
-                self.assertNotIn("Architecture", fields)
+                self.assertEqual(fields["Architecture"], document["architecture"])
         self.assertIn("libc6 (>=", packages["metadata-library"]["control_fields"]["Depends"])
         self.assertIn("metadata-library (>= 2.0)", packages["metadata-cli"]["control_fields"]["Depends"])
         self.assertEqual(packages["metadata-library"]["required_paths"], ["usr/lib/libmetadata-fixture.so.1"])
@@ -99,7 +101,7 @@ class RuntimePackagesRuleTest(unittest.TestCase):
             with tarfile.open(library) as archive:
                 member = next(item for item in archive if item.isfile() and item.name.endswith(".so.1"))
                 binary.write_bytes(archive.extractfile(member).read())
-            subprocess.run([str(patchelf.resolve()), "--set-rpath", str(execution_libc.parent), str(binary)], check=True)
+            subprocess.run([str(patchelf.absolute()), "--set-rpath", str(execution_libc.parent), str(binary)], check=True)
             payload = root / "rpath.tar"
             data = binary.read_bytes()
             with tarfile.open(payload, "w") as archive:
@@ -136,6 +138,80 @@ class RuntimePackagesRuleTest(unittest.TestCase):
                 self.assertIn(name, fields["Depends"])
             self.assertNotIn("${", fields["Depends"])
 
+    def test_finalized_control_keeps_service_metadata_without_a_source_recipe(self):
+        """The actual OTEL release control/unit need no fabricated compat or helper dependencies."""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            payload = root / "otel-service.tar"
+            with tarfile.open(payload, "w") as archive:
+                data = finalized_service.read_bytes()
+                unit = tarfile.TarInfo("lib/systemd/system/otelcol-contrib.service")
+                unit.size, unit.mode = len(data), 0o644
+                archive.addfile(unit, io.BytesIO(data))
+            result = self.generate(root, finalized_control.resolve(), payload,
+                package="otelcol-contrib", source_template=False)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            document = json.loads((root / "metadata.json").read_text())
+            fields = document["packages"]["otelcol-contrib"]["control_fields"]
+            self.assertEqual(fields["Package"], "otelcol-contrib")
+            self.assertEqual(fields["Version"], "0.144.0")
+            self.assertEqual(fields["Maintainer"],
+                "The OpenTelemetry Collector maintainers <cncf-opentelemetry-maintainers@lists.cncf.io>")
+            self.assertEqual(fields["Description"], "OpenTelemetry Collector - otelcol-contrib")
+            self.assertNotIn("Depends", fields)
+            self.assertNotIn("Pre-Depends", fields)
+            self.assertEqual(document["architecture"], architecture)
+            staged = root / "packages/packages/otelcol-contrib"
+            self.assertEqual((staged / unit.name).read_bytes(), finalized_service.read_bytes())
+            self.assertEqual({item.name for item in (staged / "DEBIAN").iterdir()}, {"control"})
+            self.assertEqual(hashlib.sha256(payload.read_bytes()).hexdigest(),
+                document["packages"]["otelcol-contrib"]["payload_sha256"])
+
+    def test_source_template_still_runs_service_helpers_and_requires_the_recipe(self):
+        """The same unit uses real helpers for source templates, including their compat checks."""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source_control = self.control(root, "metadata-scripts", "Depends: ${misc:Depends}")
+            payload = root / "service.tar"
+            with tarfile.open(payload, "w") as archive:
+                data = finalized_service.read_bytes()
+                unit = tarfile.TarInfo("lib/systemd/system/metadata-scripts.service")
+                unit.size, unit.mode = len(data), 0o644
+                archive.addfile(unit, io.BytesIO(data))
+            result = self.generate(root, source_control, payload, package="metadata-scripts")
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            fields = json.loads((root / "metadata.json").read_text())["packages"]["metadata-scripts"]["control_fields"]
+            self.assertEqual(fields["Version"], "2.0")
+            self.assertNotIn("${", json.dumps(fields))
+            source_control.write_text(source_control.read_text().replace("Build-Depends: debhelper-compat (= 13)\n", ""))
+            missing_recipe = root / "missing-recipe"
+            missing_recipe.mkdir()
+            result = self.generate(missing_recipe, source_control, payload, package="metadata-scripts")
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("Compatibility levels before 7 are no longer supported", result.stderr)
+            self.assertFalse((missing_recipe / "metadata.json").exists())
+
+    def test_finalized_control_still_resolves_actual_elf_dependencies(self):
+        """Finalized dependency text cannot substitute for the declared target library."""
+        fields = dict(json.loads(metadata.read_text())["packages"]["metadata-library"]["control_fields"])
+        fields["Architecture"] = architecture
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            binary_control = root / "control"
+            binary_control.write_text("".join(name + ": " + value + "\n" for name, value in fields.items()))
+            result = self.generate(root, binary_control, library, source_template=False)
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertRegex(result.stderr, r"(?:cannot|couldn't) find library libc\.so\.6")
+            self.assertFalse((root / "metadata.json").exists())
+            supplied = root / "with-target-library"
+            supplied.mkdir()
+            result = self.generate(supplied, binary_control, library, source_template=False,
+                additional=["--apt-package", str(libc_data.resolve()) + "=" + str(libc_control.resolve())])
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            generated = json.loads((supplied / "metadata.json").read_text())["packages"]["metadata-library"]
+            self.assertEqual(generated["control_fields"]["Depends"], fields["Depends"])
+            self.assertEqual(generated["payload_sha256"], hashlib.sha256(library.read_bytes()).hexdigest())
+
     def test_time64_provides_comes_from_debhelper(self):
         """Let Debian's architecture-aware helper determine the compatibility Provides field."""
         with tempfile.TemporaryDirectory() as temporary:
@@ -147,6 +223,50 @@ class RuntimePackagesRuleTest(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             fields = json.loads((root / "metadata.json").read_text())["packages"]["libmetadatat64"]["control_fields"]
             self.assertEqual(fields["Provides"], "libmetadata (= 2.0)")
+
+    def test_source_shlibs_substitutions_preserve_dependency_fields(self):
+        """Debian control chooses shlibs fields; real ELF dependencies follow them."""
+        cases = [
+            ("Depends: ${shlibs:Depends}", "Depends"),
+            ("Pre-Depends: ${shlibs:Pre-Depends}\nDepends: base-files", "Pre-Depends"),
+            ("Recommends: ${shlibs:Recommends}", "Recommends"),
+            ("Recommends: ${shlibs:Depends}", "Recommends"),
+            ("Pre-Depends: ${shlibs:Pre-Depends}\nDepends: base-files, ${shlibs:Depends}", "Pre-Depends"),
+        ]
+        for relationships, dependency_field in cases:
+            with self.subTest(relationships=relationships), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                source_control = self.control(root, "metadata-library", relationships)
+                result = self.generate(root, source_control, library,
+                    additional=["--apt-package", str(libc_data.resolve()) + "=" + str(libc_control.resolve())])
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                item = json.loads((root / "metadata.json").read_text())["packages"]["metadata-library"]
+                fields = item["control_fields"]
+                self.assertIn("libc6 (>=", fields[dependency_field])
+                if "base-files" in relationships:
+                    self.assertEqual(fields["Depends"], "base-files")
+                elif dependency_field != "Depends":
+                    self.assertNotIn("Depends", fields)
+                self.assertNotIn("${", json.dumps(fields))
+                self.assertEqual(item["payload_sha256"], hashlib.sha256(library.read_bytes()).hexdigest())
+
+    def test_non_elf_payload_has_no_shlibs_pre_dependencies(self):
+        """A source's shlibs variable resolves empty when its TAR has no ELF."""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source_control = self.control(root, "metadata-scripts",
+                "Pre-Depends: ${shlibs:Pre-Depends}\nDepends: base-files", architecture="all")
+            payload = root / "data.tar"
+            with tarfile.open(payload, "w") as archive:
+                data = b"plain runtime resource\n"
+                member = tarfile.TarInfo("usr/share/metadata/resource")
+                member.size, member.mode = len(data), 0o644
+                archive.addfile(member, io.BytesIO(data))
+            result = self.generate(root, source_control, payload, package="metadata-scripts")
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            fields = json.loads((root / "metadata.json").read_text())["packages"]["metadata-scripts"]["control_fields"]
+            self.assertEqual(fields["Depends"], "base-files")
+            self.assertNotIn("Pre-Depends", fields)
 
 
 if __name__ == "__main__":

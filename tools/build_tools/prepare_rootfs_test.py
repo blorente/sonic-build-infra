@@ -245,33 +245,20 @@ class RootfsTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unresolved runtime"):
             validate_links(self.root)
 
-    def test_sudo_systemd_null_mask_is_omitted_without_device_nodes(self):
-        parent = self.root / "usr/lib/systemd/system"
-        parent.mkdir(parents=True)
-        mask = parent / "sudo.service"
-        mask.symlink_to("../../../../dev/null")
+    def test_optional_tex_search_index_does_not_require_postinst(self):
+        directory = self.root / "usr/share/texmf"
+        directory.mkdir(parents=True)
+        index = directory / "ls-R"
+        index.symlink_to("../../../var/lib/texmf/ls-R-TEXMFMAIN")
         validate_links(self.root)
-        self.assertFalse(mask.is_symlink())
-        self.assertFalse((self.root / "dev/null").exists())
-
-    def test_null_link_outside_systemd_units_is_rejected(self):
-        (self.root / "usr/bin/missing").symlink_to("../../dev/null")
-        with self.assertRaisesRegex(ValueError, "unresolved runtime"):
-            validate_links(self.root)
-
-    def test_systemd_link_to_another_missing_path_is_rejected(self):
-        parent = self.root / "usr/lib/systemd/system"
-        parent.mkdir(parents=True)
-        (parent / "sudo.service").symlink_to("../../../../dev/missing")
-        with self.assertRaisesRegex(ValueError, "unresolved runtime"):
-            validate_links(self.root)
-
-    def test_another_systemd_null_mask_is_rejected(self):
-        parent = self.root / "usr/lib/systemd/system"
-        parent.mkdir(parents=True)
-        (parent / "unrelated.service").symlink_to("../../../../dev/null")
-        with self.assertRaisesRegex(ValueError, "unresolved runtime"):
-            validate_links(self.root)
+        self.assertFalse(index.is_symlink())
+        # An actually supplied index remains part of the declared runtime.
+        data = self.root / "var/lib/texmf/ls-R-TEXMFMAIN"
+        data.parent.mkdir(parents=True)
+        data.write_text("declared index")
+        index.symlink_to("../../../var/lib/texmf/ls-R-TEXMFMAIN")
+        validate_links(self.root)
+        self.assertEqual(index.read_text(), "declared index")
 
     def test_unresolved_manpage_does_not_require_an_unrelated_package(self):
         directory = self.root / "usr/share/man/man1"

@@ -1,4 +1,0 @@
-exports_files(
-    ["apt.lock.json"],
-    visibility = ["//visibility:public"],
-)

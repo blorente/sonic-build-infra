@@ -164,6 +164,14 @@ class InputsRepositoryTest(unittest.TestCase):
                 "https://example.test/debian/pool/dictionary_1_all.deb",
                 "http://mirror.example.test/debian/pool/dictionary_1_all.deb",
             ])
+            # The same locked architecture-independent closure is available in
+            # both native contexts. Adding a root expands only its dependency closure.
+            arm_inputs, arm_manifest = query(lock, ["dictionary"], architecture="arm64")
+            self.assertEqual(set(arm_inputs["image_apt"]["arm64"]), selected)
+            self.assertEqual(arm_manifest["packages"], manifest["packages"])
+            expanded_inputs, expanded_manifest = query(lock, ["dictionary", "independent"])
+            self.assertEqual(set(expanded_manifest["packages"]), selected | {"/trixie/independent:amd64=2"})
+            self.assertEqual(query(lock, ["independent", "dictionary"]), (expanded_inputs, expanded_manifest))
             for roots, error in [([], "requires dependency_set"), (["missing"], "root is not in dependency set"),
                                  (["dictionary", "dictionary"], "unique package names")]:
                 with self.subTest(roots=roots):
