@@ -106,6 +106,29 @@ installation/assembly interface. Neither copying archives nor library export
 runs Debian maintainer scripts. Package dependencies, install behavior, accounts,
 service setup and status generation must follow the consuming image contract.
 
+### Select one locked root subset
+
+`apt_inputs` also accepts `dependency_set`, `architecture`, and `root_packages`
+together. This mode validates the complete selected set/architecture, then
+follows locked dependency keys from the requested package names. A requested
+name may already be transitive in the shared set. Omitting all three attributes
+preserves the existing full-set mapping.
+
+The subset repository emits a restricted `APT_INPUTS` mapping and
+`apt_manifest.json`. The manifest contains exactly `schema = 1`,
+`dependency_set`, `architecture`, `root_packages`, and `packages`. Its package
+object is keyed by full version-2 lock keys; each row contains `name`, `version`,
+`architecture`, ordered `urls`, `sha256`, and the locked `depends_on` keys.
+Duplicate selected archive hashes fail so a consumer can bind files to rows by
+SHA256 without relying on their filenames.
+
+For example, `sonic-build-infra` uses this mode for
+`//tools/build_tools:installer_worker_debs_amd64`. The target selects the 39
+Debian names requested by `sonic-buildimage`'s installer worker plus Docker CE's
+`nftables` dependency, then consumes public `<package>/amd64:deb` aliases.
+This is a subset of the existing `build_tools` lock, with no additional APT set
+or resolver. See the [worker target contract](../tools/build_tools/README.md#locked-installer-worker-packages).
+
 ## Validation
 
 `apt/tests/lock_test.py` checks source/request invalidation, graph completeness,

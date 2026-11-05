@@ -117,6 +117,59 @@ use_repo(
     "frr_deps",
 )
 
+# The installer worker selects its own closure from the same locked set. These
+# names include the worker's Debian requests and Docker CE's nftables dependency.
+apt_inputs = use_repo_rule("//apt:inputs_repository.bzl", "apt_inputs")
+
+apt_inputs(
+    name = "installer_worker_apt_inputs",
+    architecture = "amd64",
+    dependency_set = "build_tools",
+    lock = "//apt:apt.lock.json",
+    root_packages = [
+        "acl",
+        "autoconf",
+        "automake",
+        "binutils",
+        "build-essential",
+        "busybox",
+        "ca-certificates",
+        "curl",
+        "diffutils",
+        "file",
+        "findutils",
+        "gawk",
+        "git",
+        "grep",
+        "gzip",
+        "iproute2",
+        "iptables",
+        "j2cli",
+        "jq",
+        "kmod",
+        "libtool",
+        "make",
+        "mount",
+        "nftables",
+        "passwd",
+        "pigz",
+        "pkg-config",
+        "procps",
+        "psmisc",
+        "python3",
+        "sed",
+        "squashfs-tools",
+        "sudo",
+        "tar",
+        "unzip",
+        "util-linux",
+        "wget",
+        "xz-utils",
+        "zip",
+        "zstd",
+    ],
+)
+
 # Raw APT source archives used to assemble the shared compiler sysroots.
 #
 # Import these repositories for //toolchains/sysroot:packages.bzl; compilers

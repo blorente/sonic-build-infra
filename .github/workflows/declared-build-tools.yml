@@ -94,6 +94,10 @@ jobs:
             //tools/build_tools:patch //tools/build_tools:xmllint //tools/build_tools:xsltproc \
             //tools/build_tools:launcher_action_check 2>&1 | tee ci-artifacts/build.log
           cp bazel-bin/tools/build_tools/launcher_action_check.json ci-artifacts/
+          worker_tests=()
+          if [[ "$ARCHITECTURE" == amd64 ]]; then
+            worker_tests+=(//tools/build_tools:installer_worker_debs_test)
+          fi
           bazel --ignore_all_rc_files test "${flags[@]}" --nocache_test_results \
             --test_output=errors --build_event_json_file="$PWD/ci-artifacts/test-events.jsonl" \
             //tests:host_patchelf_test //tests:source_host_tools_test \
@@ -116,6 +120,7 @@ jobs:
             //tools/build_tools:bookworm_test_runtime_test \
             //tools/build_tools:configure_make_test \
             //tools/build_tools:prepare_rootfs_test //tools/build_tools:kernel_runtime_test \
+            "${worker_tests[@]}" \
             2>&1 | tee ci-artifacts/test.log
           mkdir -p ci-artifacts/libtool
           bazel --ignore_all_rc_files cquery "${flags[@]}" --output=files \

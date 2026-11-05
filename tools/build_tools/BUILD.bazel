@@ -1,6 +1,7 @@
 load("//binary:keep_debug_info.bzl", "keep_debug_info")
 load("@bazel_skylib//rules:select_file.bzl", "select_file")
 load("@gawk//:toolchain.bzl", "gawk_toolchain")
+load("@installer_worker_apt_inputs//:apt_inputs.bzl", "APT_INPUTS")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_distroless//apt:defs.bzl", "dpkg_status")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
@@ -11,6 +12,43 @@ load(":defs.bzl", "build_tool", "build_tools_rootfs", "build_tools_runtime", "ch
 load(":kernel_roots.bzl", "KERNEL_TOOL_ROOTS")
 
 python_runtime(name = "python_runtime", visibility = ["//visibility:public"])
+
+# The metadata repository projects these roots and dependencies from the one
+# shared lock. Explicit architecture aliases keep this worker target on AMD64.
+_INSTALLER_WORKER_PACKAGES = APT_INPUTS["build_tools"]["amd64"]
+
+filegroup(
+    name = "installer_worker_debs_amd64",
+    srcs = [
+        _INSTALLER_WORKER_PACKAGES[key] + "/amd64:deb"
+        for key in sorted(_INSTALLER_WORKER_PACKAGES)
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "installer_worker_manifest_amd64",
+    srcs = ["@installer_worker_apt_inputs//:apt_manifest.json"],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "installer_worker_debs_test",
+    srcs = ["installer_worker_debs_test.py"],
+    args = [
+        "$(location :installer_worker_manifest_amd64)",
+        "$(locations :installer_worker_debs_amd64)",
+    ],
+    data = [
+        ":installer_worker_debs_amd64",
+        ":installer_worker_manifest_amd64",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//visibility:public"],
+)
 
 cc_binary(
     name = "runtime_launcher",

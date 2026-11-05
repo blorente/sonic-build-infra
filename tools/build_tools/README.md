@@ -562,3 +562,51 @@ Framework build. They are not compiler sysroot or execution-tool inputs.
 valid/invalid XSD input and an XSLT transformation after relocating the runtime
 with an empty PATH. Existing native AMD64/ARM64 CI retains that coverage and the
 fresh-output-base cache check; local validation is recorded per architecture.
+
+## Locked installer worker packages
+
+`sonic-buildimage` uses an AMD64 Debian Trixie worker for its VS installer
+assembly. The worker's Dockerfile requests 39 Debian package names, including
+`j2cli=0.3.12b-5` and `squashfs-tools=1:4.6.1-1`. Its separately supplied Docker
+CE archive also requires `nftables`. These execution tools use the same
+`build_tools` collection in `apt/apt.lock.json` as source generators and kernel builds.
+
+| Public target | Output |
+| --- | --- |
+| `@sonic_build_infra//tools/build_tools:installer_worker_debs_amd64` | One original `rules_distroless` `:deb` archive for every package in the 40 requested names' AMD64 dependency closure. |
+| `@sonic_build_infra//tools/build_tools:installer_worker_manifest_amd64` | JSON metadata for exactly those archives, derived from the same canonical lock. |
+
+The metadata repository follows only locked dependency keys. A requested name
+may already be transitive in the shared set, as `make` and `binutils` are. It
+does not resolve versions, download packages, or change the ARM64 and ARMHF
+selections. The DEB target selects explicit `<package>/amd64:deb` aliases, also
+for packages whose Debian architecture is `all`.
+
+The manifest has `schema = 1`, `dependency_set`, `architecture`,
+`root_packages`, and `packages`. The `packages` object is keyed by the complete
+version-2 lock key. Each row contains `name`, `version`, `architecture`, ordered
+`urls`, `sha256`, and the locked `depends_on` keys. The source URLs and hashes
+come from the reviewed lock.
+
+Raw archives can share the same basename in distinct external repositories.
+Consumers must keep the full Bazel paths while enumerating the DEB target, match each file's SHA256 to one manifest row, and verify the complete
+set before staging unique filenames. Do not flatten by basename or infer a
+package identity from Bazel's internal repository path. These targets supply
+archives; the worker still owns real APT/dpkg installation and its installed
+runtime checks.
+
+### Refresh the worker inputs
+
+Add worker package requests to the existing `build_tools` collection in
+`apt/requests.json`, then use the shared updater from the repository root:
+
+```sh
+python3 apt/lock.py update --bazel /path/to/bazel-8.5.1
+python3 apt/lock.py check
+bazel test //tools/build_tools:installer_worker_debs_test
+```
+
+Review and commit `apt/requests.json` and `apt/apt.lock.json` together. The updater
+preserves existing archive identities and native file mappings. The worker
+metadata repository and archive targets consume that same lock during ordinary
+builds. `MODULE.bazel.lock` remains ignored generated resolution evidence.
