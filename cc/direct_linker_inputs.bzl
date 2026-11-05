@@ -11,11 +11,6 @@ Filtering a CcInfo down to the direct producers' own linker inputs keeps the
 Bazel-built archive matched to the Debian dev-package contract without
 rebuilding or copying any artifact. The merged compilation context still
 propagates every producer's headers and defines to consumers.
-
-The libnl3 module in sonic-bazel-registry is the reference consumer: each
-sub-library (route, genl, nf, cli, idiag, xfrm) wraps its direct deps in this
-rule before cc_static_library so the installed usr/lib archives match the
-Debian payload. This rule generalizes that module's earlier archive_inputs.bzl.
 """
 
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
