@@ -11,10 +11,7 @@ hand. Only a rule that reads CcSharedLibraryInfo can reuse the producer's
 existing linker input, files, and runfiles, which is what this adapter does.
 
 TODO(bazel-ready): Propose this adapter upstream in rules_cc, which owns the
-cc_shared_library implementation. As of 2026-11 no upstream interface exposes
-a cc_shared_library to CcInfo consumers, and no open issue requests one; the
-closest reports are https://github.com/bazelbuild/bazel/issues/18222 and
-https://github.com/bazelbuild/rules_rust/issues/4233.
+cc_shared_library implementation.
 """
 
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
