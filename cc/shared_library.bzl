@@ -1,4 +1,21 @@
-"""Expose a native shared library to consumers that require CcInfo."""
+"""Expose a native shared library to consumers that require CcInfo.
+
+Why not cc_import: cc_shared_library provides only CcSharedLibraryInfo, which
+native rules consume through dynamic_deps, while Go cgo (cdeps) and Rust
+require CcInfo. Copying the built ELF and importing the copy with cc_import
+links, but cc_import constructs a new LibraryToLink from the file, so Bazel
+relocates the ELF into a second _solib_* tree, away from the RUNPATH computed
+when the producer linked it; the import also carries neither the producer's
+runfiles nor its transitive dynamic_deps, which must then be redeclared by
+hand. Only a rule that reads CcSharedLibraryInfo can reuse the producer's
+existing linker input, files, and runfiles, which is what this adapter does.
+
+TODO(bazel-ready): Propose this adapter upstream in rules_cc, which owns the
+cc_shared_library implementation. As of 2026-11 no upstream interface exposes
+a cc_shared_library to CcInfo consumers, and no open issue requests one; the
+closest reports are https://github.com/bazelbuild/bazel/issues/18222 and
+https://github.com/bazelbuild/rules_rust/issues/4233.
+"""
 
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("@rules_cc//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
