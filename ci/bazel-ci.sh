@@ -26,8 +26,15 @@ cp ci/source_mirrors.cfg "$artifacts/ci/"
 # Record the effective endpoint with the generated module lock.
 registry=${SONIC_BAZEL_REGISTRY:-https://raw.githubusercontent.com/securely1g/sonic-bazel-registry/main}
 printf '%s\n' "$registry" > "$artifacts/registry.txt"
+# Explicit CI transport must also reach the nested shared-API workspace.
+# Ordinary local callers retain the checked-in mirror configuration.
+downloader_config=${SONIC_BAZEL_DOWNLOADER_CONFIG:-$root/ci/source_mirrors.cfg}
+if [[ "$downloader_config" != /* || ! -f "$downloader_config" || -L "$downloader_config" ]]; then
+  echo 'Selected downloader configuration must be an absolute regular non-symlink file' >&2
+  exit 1
+fi
 resolution=(--registry="$registry" --registry=https://bcr.bazel.build/ --lockfile_mode=update
-            --downloader_config="$root/ci/source_mirrors.cfg")
+            --downloader_config="$downloader_config")
 platform="//platforms:${cpu}_trixie"
 flags=("${resolution[@]}" --platforms="$platform" --host_platform="$platform" --jobs=4
        '--remote_download_regex=(^|.*/)tools/build_tools/kernel_runtime_(amd64|arm64)(/.*)?$')
@@ -45,6 +52,7 @@ tests=(
   //oci/tests:runtime_control_files_rule_test
   //oci/tests:installed_packages_test
   //oci/tests:owner_metadata_test //oci/tests:installed_packages_rule_test
+  //oci/tests:installed_packages_alias_test
   //oci/tests:account_layer_test
   //apt:lock_test
   //apt:bookworm_lock_test
@@ -105,7 +113,14 @@ tests=(
   //cc/tests:transitive_runtime_test
   //cc/tests:shared_library_layout_test
   //cc/tests/runtime_context:layout_test
+  //cc/tests/runtime_context:paired_layout_test
+  //cc/tests/runtime_context:paired_flags_test
+  //cc/tests/runtime_context:plain_dynamic_deps_test
+  //cc/tests/runtime_context:dynamic_deps_layout_test
+  //cc/tests/runtime_context:paired_owners_test
+  //cc/tests/runtime_context:plain_owners_test
   //cc/tests/runtime_test:native_test
+  //cc/tests/runtime_test:preparation_test
   //cc/tests/runtime_test:contract_test
   //cc/tests/runtime_test:origin_contract_test
   //testing:exec_test_args_test
@@ -156,7 +171,8 @@ apt_python_flags=("${flags[@]}" --@rules_python//python/config_settings:python_v
 # Explicitly exercise the individual APT library/header exports on Bookworm.
 # The same native CPU uses Trixie execution tools and a Bookworm target ABI.
 bookworm_tests=(//cc/tests/header_includes:headers_link_test
-  //toolchains/bookworm/tests:abi_test //toolchains/bookworm/tests:native_test)
+  //toolchains/bookworm/tests:abi_test //toolchains/bookworm/tests:native_test
+  //apt/tests/integration:bookworm_library_import_test)
 bookworm_flags=("${flags[@]}" --platforms="//platforms:${cpu}_bookworm")
 printf '%s\n' "${bookworm_tests[@]}" > "$artifacts/bookworm-targets.txt"
 "${bazel_cmd[@]}" aquery "${bookworm_flags[@]}" --output=jsonproto \

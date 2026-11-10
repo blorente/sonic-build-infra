@@ -13,6 +13,13 @@ load(":kernel_roots.bzl", "KERNEL_TOOL_ROOTS")
 
 python_runtime(name = "python_runtime", visibility = ["//visibility:public"])
 
+filegroup(
+    name = "launcher_test_source",
+    testonly = True,
+    srcs = ["launcher.py"],
+    visibility = ["//cc/tests/runtime_test:__pkg__"],
+)
+
 # The metadata repository projects these roots and dependencies from the one
 # shared lock. Explicit architecture aliases keep this worker target on AMD64.
 _INSTALLER_WORKER_PACKAGES = APT_INPUTS["build_tools"]["amd64"]
@@ -695,7 +702,10 @@ alias(
     visibility = ["//visibility:public"],
 )
 
-exports_files(["configure_environment.sh"])
+exports_files([
+    "configure_environment.sh",
+    "configure_linker_flags.sh",
+])
 
 filegroup(
     name = "libtool_sources",
@@ -707,6 +717,7 @@ configure_make(
     build_data = [
         ":foreign_runtime",
         ":configure_environment.sh",
+        ":configure_linker_flags.sh",
     ],
     configure_command = "configure.sh",
     configure_in_place = True,
@@ -715,6 +726,7 @@ configure_make(
         "PATH": "$(execpath :foreign_runtime)/bin:$$PATH",
         "BAZEL_FOREIGN_TOOLS": "$(execpath :foreign_runtime)",
         "BAZEL_CONFIGURE_ENV": "$(execpath :configure_environment.sh)",
+        "BAZEL_CONFIGURE_LINKER_FLAGS": "$(execpath :configure_linker_flags.sh)",
     },
     features = ["-sanitize_pwd"],
     lib_source = ":libtool_sources",

@@ -3,6 +3,20 @@ as Go cgo and Rust `link_deps` that require `CcInfo`. It preserves the native
 producer's library paths and runfiles, including its transitive shared-library
 dependencies. It does not copy the ELF or create another `cc_import`.
 
+The obvious alternative, copying the built library and importing the copy with
+`cc_import`, links but degrades the runtime contract. `cc_import` constructs a
+new `LibraryToLink` from the file, so Bazel relocates the ELF into a second
+`_solib_*` tree: two copies of one library ship, and the producer's RUNPATH
+was computed for the original link location. The import also carries neither
+the producer's runfiles nor its transitive `dynamic_deps`, which must be
+redeclared by hand and kept in sync.
+
+Reusing the producer's existing linker input requires
+reading `CcSharedLibraryInfo`, which only a Starlark rule can do; upstream
+`cc_shared_library` deliberately provides no `CcInfo`, so this adapter fills
+that gap (see the TODO in `shared_library.bzl` about proposing it upstream in
+rules_cc).
+
 ```starlark
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
 load("@sonic_build_infra//cc:shared_library.bzl", "shared_library_cc_info")
@@ -61,7 +75,7 @@ the middle library directly. The standard native AMD64 and ARM64 CI runs both
 tests.
 
 `native_runtime_binary` and `native_runtime_test` in `//cc:runtime_test.bzl`
-execute native Linux target ELFs using the matching loader and libraries from
+execute Linux target ELFs using the matching loader and libraries from
 explicit target Debian payload tar archives. They preserve installed PT_INTERP.
 Provide `binary` and `runtime_payloads` (including libc6 and the runtime library
 closure). Payload labels may be architecture-selecting filegroups. The wrapper
@@ -70,9 +84,33 @@ Shared libraries expand ORIGIN relative to their own location. RPATH search
 paths reach indirect dependencies; RUNPATH applies only to direct dependencies.
 An execution tool attribute with `cfg = "exec"` selects the complete wrapper
 in exec configuration.
-Cross architecture binaries may be built; this interface requires matching
-execution and target CPUs to execute them. It supports library payloads, not a
-chroot filesystem or arbitrary package data requirements.
+The target platform's x86_64 or aarch64 constraint selects the expected ELF
+machine. The binary and every payload ELF must match it; preparation never
+infers the target CPU from its own interpreter. Cross execution still requires
+an external executor that can run the real target loader and binary. This
+interface supports library payloads, not a chroot filesystem or arbitrary
+package data requirements.
+
+ELF parsing and payload extraction run through the declared
+`//tools/build_tools:python3` in exec configuration, with its complete private
+runtime in runfiles. The initial SDK bootstrap snapshots the caller environment
+before starting that native preparation tool. Preparation receives sanitized
+Python/loader startup variables; an unlinked temporary file transfers the
+original environment by an inherited descriptor, which is closed before the
+target or instrument starts. Unset and empty values remain distinct. The
+target retains caller Python settings and the existing filtering of
+`LD_LIBRARY_PATH`, `LD_PRELOAD`, and `LD_AUDIT`; the private preparation
+`PYTHONHOME` never replaces a target Python runtime. Other Python tests and
+their interpreter selection are unchanged.
+
+The final subprocess explicitly retains the caller's working directory. This
+avoids the native Python 3.13 `posix_spawn` path that returned `EFAULT` for large
+environments under traced execution, without changing arguments, relative
+paths, or the target environment. The focused `preparation_test` covers the
+target CPU checks, caller environment, anonymous descriptor lifetime, startup
+failures, signals, and relative paths. Its synthetic ELF and interpreter
+stand-ins supplement the real runtime contract tests; they do not prove cross
+execution on their own.
 
 Set `instrument` to a declared executable (selected in exec configuration) and
 `instrument_args` to its arguments when testing through Valgrind or a similar
