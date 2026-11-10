@@ -34,10 +34,15 @@ extensions that read the generated `Cargo.Bazel.lock`. Keep the existing
 preparation command until a Bazel entry point can start from a clean checkout
 with those inputs missing or stale.
 
-From the infra source directory:
+The APT updater also needs this exception when requests or sources change.
+The root module imports the production lock during Bazel analysis, so a stale
+lock prevents `//apt:lock` from starting. Set `BOOTSTRAP_PYTHON` to the
+absolute path of a pinned Python 3 interpreter provisioned independently of
+this workspace. Regenerate the lock from the infra source directory, then
+check the resulting file through Bazel:
 
 ```sh
-bazel run //apt:lock -- update --bazel /path/to/bazel-8.5.1
+"$BOOTSTRAP_PYTHON" apt/lock.py update --bazel /path/to/bazel-8.5.1
 bazel run //apt:lock -- check
 ```
 
@@ -47,7 +52,7 @@ explicit settings to build, cquery and info; pass values containing a leading
 `--` using `=`. For example:
 
 ```sh
-bazel run //apt:lock -- update \
+"$BOOTSTRAP_PYTHON" apt/lock.py update \
   --bazel /path/to/bazel-8.5.1 \
   --registry file:///path/to/sonic-bazel-registry \
   --registry https://bcr.bazel.build/ \

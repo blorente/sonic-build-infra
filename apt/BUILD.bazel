@@ -36,8 +36,8 @@ exports_files([
     "requirements_lock.txt",
 ])
 
-# The shared updater runs under the hermetic interpreter, never a worker-provided
-# python3: `bazel run //apt:lock -- update|check`.
+# Check the reviewed lock with the registered interpreter. Regenerating a stale
+# lock requires the bootstrap command documented in README.md.
 py_binary(
     name = "lock",
     srcs = ["lock.py"],
