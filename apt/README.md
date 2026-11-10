@@ -23,14 +23,16 @@ distributions from overwriting each other's source or file map. The existing
 merge validates their suite-qualified identities and produces one production
 lock. Ordinary imports need no partitioning or package-index access.
 
-Run maintenance scripts through Bazel rather than a worker-provided `python3`.
-`bazel run` executes them under the hermetic Python toolchains registered in
-MODULE.bazel, so every contributor and CI worker uses the same interpreter and
-dependency set. This policy applies to every script in this repository that
-runs outside of Bazel actions, including `go/lock.py` and
-`tools/rust/prepare.py`. Under `bazel run` the updater resolves its default
-`--sources`/`--requests`/`--lock` paths against `BUILD_WORKSPACE_DIRECTORY`,
-so it edits the source tree, never its runfiles copy.
+Use `bazel run` for Python maintenance tools with a Bazel entry point. The
+`//apt:lock` target runs the updater with the Python toolchain registered in
+`MODULE.bazel`. Its default inputs and output are in the invoking checkout's
+`apt/` directory, located through `BUILD_WORKSPACE_DIRECTORY`.
+
+A bootstrap tool must be able to start before Bazel evaluates the dependencies
+it prepares. For example, run `tools/rust/prepare.py` before evaluating crate
+extensions that read the generated `Cargo.Bazel.lock`. Keep the existing
+preparation command until a Bazel entry point can start from a clean checkout
+with those inputs missing or stale.
 
 From the infra source directory:
 
